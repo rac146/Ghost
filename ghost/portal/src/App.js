@@ -306,7 +306,7 @@ export default class App extends React.Component {
         const allowedPlans = [];
         let portalPrices;
         let portalProducts = null;
-        let monthlyPrice, yearlyPrice, currency;
+        let monthlyPrice, yearlyPrice, oneTimePrice, currency;
         // Handle the query params key/value pairs
         for (let pair of qsParams.entries()) {
             const key = pair[0];
@@ -345,6 +345,9 @@ export default class App extends React.Component {
             } else if (key === 'yearlyPrice' && !isNaN(Number(value))) {
                 data.site.plans.yearly = Number(value);
                 yearlyPrice = Number(value);
+            } else if (key === 'oneTimePrice' && !isNaN(Number(value))) {
+                data.site.plans.yearly = Number(value);
+                oneTimePrice = Number(value); 
             } else if (key === 'currency' && value) {
                 const currencyValue = value.toUpperCase();
                 data.site.plans.currency = currencyValue;
@@ -385,6 +388,16 @@ export default class App extends React.Component {
                     amount: yearlyPrice,
                     type: 'recurring',
                     interval: 'year'
+                },
+                {
+                    id: 'one-time',
+                    stripe_price_id: 'dummy_stripe_one_time',
+                    stripe_product_id: 'dummy_stripe_product',
+                    active: 1,
+                    nickname: 'One-Time',
+                    currency: currency,
+                    amount: oneTimePrice,
+                    type: 'one_time'
                 }
             ];
         }

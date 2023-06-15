@@ -5,9 +5,6 @@ module.exports = {
     docName: 'media',
     upload: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: false,
         async query(frame) {
             let thumbnailPath = null;
@@ -25,9 +22,6 @@ module.exports = {
     },
 
     uploadThumbnail: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: false,
         data: [
             'url',

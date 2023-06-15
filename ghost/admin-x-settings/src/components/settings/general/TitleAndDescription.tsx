@@ -1,30 +1,27 @@
 import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextArea from '../../../admin-x-ds/global/form/TextArea';
-import TextField from '../../../admin-x-ds/global/form/TextField';
+import TextField from '../../../admin-x-ds/global/TextField';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getSettingValues} from '../../../utils/helpers';
 
 const TitleAndDescription: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         focusRef,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [title, description] = getSettingValues(localSettings, ['title', 'description']) as string[];
+    const [title, description] = getSettingValues(['title', 'description']) as string[];
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('title', e.target.value);
     };
 
-    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('description', e.target.value);
     };
 
@@ -47,7 +44,7 @@ const TitleAndDescription: React.FC = () => {
     );
 
     const inputFields = (
-        <SettingGroupContent>
+        <SettingGroupContent columns={2}>
             <TextField
                 hint="The name of your site"
                 inputRef={focusRef}
@@ -56,28 +53,27 @@ const TitleAndDescription: React.FC = () => {
                 value={title}
                 onChange={handleTitleChange}
             />
-            <TextArea
-                hint="A short description, used in your theme, meta data and search results"
-                placeholder="Site description"
+            <TextField
+                hint="Used in your theme, meta data and search results"
+                placeholder="Enter something"
                 title="Site description"
                 value={description}
-                onChange={handleDescriptionChange} />
+                onChange={handleDescriptionChange}
+            />
         </SettingGroupContent>
     );
 
     return (
         <SettingGroup
             description='The details used to identify your publication around the web'
-            isEditing={isEditing}
             navid='title-and-description'
-            saveState={saveState}
-            testId='title-and-description'
+            state={currentState}
             title='Title & description'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? inputFields : values}
+            {currentState === 'view' ? values : inputFields }
         </SettingGroup>
     );
 };

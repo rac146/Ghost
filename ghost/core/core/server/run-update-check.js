@@ -1,4 +1,4 @@
-const {parentPort, workerData} = require('worker_threads');
+const {parentPort} = require('worker_threads');
 
 const postParentPortMessage = (message) => {
     if (parentPort) {
@@ -46,9 +46,7 @@ if (parentPort) {
     // Finished INIT
 
     await updateCheck({
-        rethrowErrors: true,
-        forceUpdate: workerData.forceUpdate,
-        updateCheckUrl: workerData.updateCheckUrl
+        rethrowErrors: true
     });
 
     postParentPortMessage(`Ran update check`);

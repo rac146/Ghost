@@ -14,8 +14,7 @@ const preview: Preview = {
 		},
 		options: {
 			storySort: {
-				mathod: 'alphabetical',
-				order: ['Global', ['Chrome', 'Form', 'Modal', 'Layout', 'List', '*'], 'Settings', ['Setting Section', 'Setting Group', '*'], 'Experimental'],
+				order: ['Global', 'Settings', 'Experimental'],
 			},
 		},
 	},

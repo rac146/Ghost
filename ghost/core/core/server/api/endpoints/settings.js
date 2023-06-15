@@ -25,9 +25,6 @@ module.exports = {
     docName: 'settings',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: ['group'],
         permissions: true,
         query(frame) {
@@ -36,9 +33,6 @@ module.exports = {
     },
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: ['key'],
         validation: {
             options: {
@@ -79,9 +73,6 @@ module.exports = {
 
     disconnectStripeConnectIntegration: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: {
             method: 'edit'
         },
@@ -167,8 +158,7 @@ module.exports = {
             disposition: {
                 type: 'yaml',
                 value: 'routes.yaml'
-            },
-            cacheInvalidate: false
+            }
         },
         response: {
             format: 'plain'

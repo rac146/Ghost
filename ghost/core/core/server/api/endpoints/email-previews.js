@@ -4,9 +4,6 @@ module.exports = {
     docName: 'email_previews',
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'fields',
             'memberSegment',
@@ -28,9 +25,7 @@ module.exports = {
     },
     sendTestEmail: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'id'
         ],

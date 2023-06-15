@@ -153,7 +153,7 @@ function ping(post) {
     }
 }
 
-function slackListener(model, options) {
+function listener(model, options) {
     // CASE: do not ping slack if we import a database
     // TODO: refactor post.published events to never fire on importing
     if (options && options.importing) {
@@ -163,20 +163,15 @@ function slackListener(model, options) {
     ping(model.toJSON());
 }
 
-function slackTestPing() {
+function testPing() {
     ping({
         message: 'Heya! This is a test notification from your Ghost blog :smile:. Seems to work fine!'
     });
 }
 
 function listen() {
-    if (!events.hasRegisteredListener('post.published', 'slackListener')) {
-        events.on('post.published', slackListener);
-    }
-
-    if (!events.hasRegisteredListener('slack.test', 'slackTestPing')) {
-        events.on('slack.test', slackTestPing);
-    }
+    events.on('post.published', listener);
+    events.on('slack.test', testPing);
 }
 
 // Public API

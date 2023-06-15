@@ -10,9 +10,6 @@ module.exports = {
     docName: 'themes',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         query() {
             return themeService.api.getJSON();
@@ -20,9 +17,6 @@ module.exports = {
     },
 
     readActive: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         async query() {
             let themeName = settingsCache.get('active_theme');
@@ -65,9 +59,7 @@ module.exports = {
     },
 
     install: {
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'source',
             'ref'
@@ -102,9 +94,7 @@ module.exports = {
     },
 
     upload: {
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         permissions: {
             method: 'add'
         },
@@ -135,9 +125,6 @@ module.exports = {
     },
 
     download: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'name'
         ],

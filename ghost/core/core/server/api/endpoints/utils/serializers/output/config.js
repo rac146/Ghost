@@ -21,8 +21,7 @@ module.exports = {
             'tenor',
             'editor',
             'pintura',
-            'adminX',
-            'signupForm'
+            'adminX'
         ];
 
         frame.response = {

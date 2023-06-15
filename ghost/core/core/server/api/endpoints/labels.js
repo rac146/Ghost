@@ -14,9 +14,6 @@ module.exports = {
     docName: 'labels',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',
@@ -39,9 +36,6 @@ module.exports = {
     },
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',
@@ -75,9 +69,7 @@ module.exports = {
 
     add: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'include'
         ],
@@ -102,9 +94,7 @@ module.exports = {
     },
 
     edit: {
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'id',
             'include'

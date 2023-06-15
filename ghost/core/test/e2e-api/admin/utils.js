@@ -42,8 +42,7 @@ const expectedProperties = {
         'tenor',
         'mailgunIsConfigured',
         'editor',
-        'adminX',
-        'signupForm'
+        'adminX'
     ],
 
     post: [

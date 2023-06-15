@@ -1,25 +1,22 @@
-import Icon from '../../../admin-x-ds/global/Icon';
 import Link from '../../../admin-x-ds/global/Link';
 import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextField from '../../../admin-x-ds/global/form/TextField';
-import Toggle from '../../../admin-x-ds/global/form/Toggle';
+import TextField from '../../../admin-x-ds/global/TextField';
+import Toggle from '../../../admin-x-ds/global/Toggle';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getSettingValues} from '../../../utils/helpers';
 
 const LockSite: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [passwordEnabled, password] = getSettingValues(localSettings, ['is_private', 'password']) as [boolean, string];
+    const [passwordEnabled, password] = getSettingValues(['is_private', 'password']) as [boolean, string];
 
     const handleToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('is_private', e.target.checked);
@@ -34,17 +31,7 @@ const LockSite: React.FC = () => {
             values={[
                 {
                     key: 'private',
-                    value: passwordEnabled ? (
-                        <div className='flex items-center gap-1'>
-                            <Icon colorClass='text-yellow' name='lock-locked' size='sm' />
-                            <span>Your site is password protected</span>
-                        </div>
-                    ) : (
-                        <div className='flex items-center gap-1 text-grey-900'>
-                            <Icon colorClass='text-black' name='lock-unlocked' size='sm' />
-                            <span>Your site is not password protected</span>
-                        </div>
-                    )
+                    value: !passwordEnabled ? 'Your site is not password protected' : 'Your site is password protected'
                 }
             ]}
         />
@@ -68,9 +55,7 @@ const LockSite: React.FC = () => {
                 <TextField
                     hint={hint}
                     placeholder="Enter password"
-                    title="Site password"
                     value={password}
-                    hideTitle
                     onChange={handlePasswordChange}
                 />
             }
@@ -80,16 +65,13 @@ const LockSite: React.FC = () => {
     return (
         <SettingGroup
             description='Enable protection with a simple shared password.'
-            isEditing={isEditing}
-            navid='locksite'
-            saveState={saveState}
-            testId='locksite'
+            state={currentState}
             title='Make site private'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? inputs : values}
+            {currentState === 'view' ? values : inputs}
         </SettingGroup>
     );
 };

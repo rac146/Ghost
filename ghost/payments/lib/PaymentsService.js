@@ -33,6 +33,7 @@ class PaymentsService {
             if (event.data.tier.type === 'paid') {
                 await this.getPriceForTierCadence(event.data.tier, 'month');
                 await this.getPriceForTierCadence(event.data.tier, 'year');
+                await this.getPriceForTierCadence(event.data.tier, 'oneTime');
             }
         });
 
@@ -40,6 +41,7 @@ class PaymentsService {
             if (event.data.tier.type === 'paid') {
                 await this.getPriceForTierCadence(event.data.tier, 'month');
                 await this.getPriceForTierCadence(event.data.tier, 'year');
+                await this.getPriceForTierCadence(event.data.tier, 'oneTime');
             }
         });
 
@@ -106,7 +108,14 @@ class PaymentsService {
             data.customerEmail = email;
         }
 
-        const session = await this.stripeAPIService.createCheckoutSession(price.id, customer, data);
+        var isRecurring = true;
+
+        if(cadence == 'oneTime')
+        {
+            isRecurring = false
+        }
+
+        const session = await this.stripeAPIService.createCheckoutSession(price.id, customer, data, isRecurring);
 
         return session.url;
     }
@@ -226,7 +235,9 @@ class PaymentsService {
         for (const row of rows) {
             try {
                 const price = await this.stripeAPIService.getPrice(row.stripe_price_id);
-                if (price.active && price.currency.toLowerCase() === currency && price.unit_amount === amount && price.recurring?.interval === cadence) {
+                if (price.active && price.currency.toLowerCase() === currency 
+                && price.unit_amount === amount && 
+                (price.recurring?.interval === cadence || (price.type == 'one_time' && cadence == 'oneTime'))) {
                     return {
                         id: price.id
                     };
@@ -249,6 +260,8 @@ class PaymentsService {
         };
     }
 
+    //TODO ONETIME PRICE
+
     /**
      * @param {import('@tryghost/tiers').Tier} tier
      * @param {'month'|'year'} cadence
@@ -256,15 +269,35 @@ class PaymentsService {
      */
     async createPriceForTierCadence(tier, cadence) {
         const product = await this.getProductForTier(tier);
+
+        let nickname, type;
+
+        if(cadence === "month") {
+            nickname = 'Monthly'
+            type = 'recurring';
+        }
+        else if(cadence === "year") {
+            nickname = 'Yearly'
+            type = 'recurring';
+        } else if(cadence === "oneTime") {
+            nickname = 'One-Time'
+            type = 'one_time';
+        } else {
+            nickname = 'Yearly'
+            type = 'recurring';
+        }
+
+
         const price = await this.stripeAPIService.createPrice({
             product: product.id,
             interval: cadence,
             currency: tier.currency,
             amount: tier.getPrice(cadence),
-            nickname: cadence === 'month' ? 'Monthly' : 'Yearly',
-            type: 'recurring',
+            nickname: nickname,
+            type: type,
             active: true
         });
+
         await this.StripePriceModel.add({
             stripe_price_id: price.id,
             stripe_product_id: product.id,
@@ -272,7 +305,7 @@ class PaymentsService {
             nickname: price.nickname,
             currency: price.currency,
             amount: price.unit_amount,
-            type: 'recurring',
+            type: type,
             interval: cadence
         });
         return price;

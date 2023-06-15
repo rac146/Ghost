@@ -2,35 +2,32 @@ import Button from '../../../admin-x-ds/global/Button';
 import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import Toggle from '../../../admin-x-ds/global/form/Toggle';
+import Toggle from '../../../admin-x-ds/global/Toggle';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getSettingValues} from '../../../utils/helpers';
 
 const Analytics: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [trackEmailOpens, trackEmailClicks, trackMemberSources, outboundLinkTagging] = getSettingValues(localSettings, [
+    const [trackEmailOpens, trackEmailClicks, trackMemberSources, outboundLinkTagging] = getSettingValues([
         'email_track_opens', 'email_track_clicks', 'members_track_sources', 'outbound_link_tagging'
     ]) as boolean[];
 
     const handleToggleChange = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting(key, e.target.checked);
-        handleEditingChange(true);
     };
 
     const inputs = (
         <SettingGroupContent columns={2}>
             <Toggle
+                // direction='rtl'
                 checked={trackEmailOpens}
-                direction='rtl'
                 hint='Record when a member opens an email'
                 id='newsletter-opens'
                 label='Newsletter opens'
@@ -39,8 +36,8 @@ const Analytics: React.FC = () => {
                 }}
             />
             <Toggle
+                // direction='rtl'
                 checked={trackEmailClicks}
-                direction='rtl'
                 hint='Record when a member clicks on any link in an email'
                 id='newsletter-clicks'
                 label='Newsletter clicks'
@@ -49,8 +46,8 @@ const Analytics: React.FC = () => {
                 }}
             />
             <Toggle
+                // direction='rtl'
                 checked={trackMemberSources}
-                direction='rtl'
                 hint='Track the traffic sources and posts that drive the most member growth'
                 id='member-sources'
                 label='Member sources'
@@ -59,8 +56,8 @@ const Analytics: React.FC = () => {
                 }}
             />
             <Toggle
+                // direction='rtl'
                 checked={outboundLinkTagging}
-                direction='rtl'
                 hint='Make it easier for other sites to track the traffic you send them in their analytics'
                 id='outbound-links'
                 label='Outbound link tagging'
@@ -74,15 +71,11 @@ const Analytics: React.FC = () => {
     return (
         <SettingGroup
             description='Decide what data you collect from your members'
-            hideEditButton={true}
-            isEditing={isEditing}
-            navid='analytics'
-            saveState={saveState}
-            testId='analytics'
+            state={currentState}
             title='Analytics'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
             {inputs}
             <div className='mt-1'>

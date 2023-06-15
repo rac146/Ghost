@@ -45,9 +45,6 @@ module.exports = {
     docName: 'users',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',
@@ -71,9 +68,6 @@ module.exports = {
     },
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',
@@ -109,9 +103,7 @@ module.exports = {
     },
 
     edit: {
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'id',
             'include'
@@ -174,9 +166,6 @@ module.exports = {
     },
 
     changePassword: {
-        headers: {
-            cacheInvalidate: false
-        },
         validation: {
             docName: 'password',
             data: {
@@ -199,9 +188,6 @@ module.exports = {
     },
 
     transferOwnership: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions(frame) {
             return models.Role.findOne({name: 'Owner'})
                 .then((ownerRole) => {
@@ -214,9 +200,6 @@ module.exports = {
     },
 
     readToken: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'id'
         ],
@@ -235,9 +218,6 @@ module.exports = {
     },
 
     regenerateToken: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'id'
         ],

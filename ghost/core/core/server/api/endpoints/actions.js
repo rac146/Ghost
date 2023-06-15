@@ -4,9 +4,6 @@ module.exports = {
     docName: 'actions',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'page',
             'limit',

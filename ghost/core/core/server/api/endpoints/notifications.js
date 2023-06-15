@@ -7,9 +7,6 @@ module.exports = {
     docName: 'notifications',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         query(frame) {
             return notifications.browse({
@@ -27,9 +24,6 @@ module.exports = {
             } else {
                 return 200;
             }
-        },
-        headers: {
-            cacheInvalidate: false
         },
         permissions: true,
         async query(frame) {
@@ -51,9 +45,6 @@ module.exports = {
 
     destroy: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
         options: ['notification_id'],
         validation: {
             options: {
@@ -85,9 +76,6 @@ module.exports = {
      */
     destroyAll: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: {
             method: 'destroy'
         },

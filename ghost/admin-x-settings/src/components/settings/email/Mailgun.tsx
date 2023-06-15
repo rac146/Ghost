@@ -1,12 +1,10 @@
-import IconLabel from '../../../admin-x-ds/global/IconLabel';
+import Dropdown from '../../../admin-x-ds/global/Dropdown';
 import Link from '../../../admin-x-ds/global/Link';
 import React from 'react';
-import Select from '../../../admin-x-ds/global/form/Select';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextField from '../../../admin-x-ds/global/form/TextField';
+import TextField from '../../../admin-x-ds/global/TextField';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getSettingValues} from '../../../utils/helpers';
 
 const MAILGUN_REGIONS = [
     {label: '🇺🇸 US', value: 'https://api.mailgun.net/v3'},
@@ -15,29 +13,25 @@ const MAILGUN_REGIONS = [
 
 const MailGun: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [mailgunRegion, mailgunDomain, mailgunApiKey] = getSettingValues(localSettings, [
+    const [mailgunRegion, mailgunDomain, mailgunApiKey] = getSettingValues([
         'mailgun_base_url', 'mailgun_domain', 'mailgun_api_key'
     ]) as string[];
 
-    const isMailgunSetup = mailgunDomain && mailgunApiKey;
+    const isMailgunSetup = mailgunRegion && mailgunDomain && mailgunApiKey;
 
     const data = isMailgunSetup ? [
         {
+            heading: 'Status',
             key: 'status',
-            value: (
-                <IconLabel icon='check-circle' iconColorClass='text-green'>
-                    Mailgun is set up
-                </IconLabel>
-            )
+            value: 'Mailgun is set up ✅'
         }
     ] : [
         {
@@ -61,7 +55,7 @@ const MailGun: React.FC = () => {
     const inputs = (
         <SettingGroupContent>
             <div className='grid grid-cols-[120px_auto] gap-x-3 gap-y-6'>
-                <Select
+                <Dropdown
                     defaultSelectedOption={mailgunRegion}
                     options={MAILGUN_REGIONS}
                     title="Mailgun region"
@@ -98,16 +92,13 @@ const MailGun: React.FC = () => {
     return (
         <SettingGroup
             description={groupDescription}
-            isEditing={isEditing}
-            navid='mailgun'
-            saveState={saveState}
-            testId='mailgun'
+            state={currentState}
             title='Mailgun'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? inputs : values}
+            {currentState === 'view' ? values : inputs}
         </SettingGroup>
     );
 };

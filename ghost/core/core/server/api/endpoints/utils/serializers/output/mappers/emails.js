@@ -1,3 +1,5 @@
+const labs = require('../../../../../../../shared/labs');
+const config = require('../../../../../../../shared/config');
 const emailService = require('../../../../../../services/email-service');
 
 module.exports = (model, frame) => {
@@ -14,6 +16,12 @@ module.exports = (model, frame) => {
 
         if (jsonModel.plaintext) {
             jsonModel.plaintext = emailService.service.replaceDefinitions(jsonModel.plaintext, replacements, exampleMember);
+        }
+    }
+
+    if (!labs.isSet('emailErrors') && !!(config.get('bulkEmail') && config.get('bulkEmail').mailgun)) {
+        if (jsonModel.status === 'failed') {
+            jsonModel.status = 'submitted';
         }
     }
 

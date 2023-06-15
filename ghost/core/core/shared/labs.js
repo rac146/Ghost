@@ -17,9 +17,9 @@ const messages = {
 const GA_FEATURES = [
     'audienceFeedback',
     'themeErrorsNotification',
+    'emailErrors',
     'outboundLinkTagging',
-    'announcementBar',
-    'signupForm'
+    'announcementBar'
 ];
 
 // NOTE: this allowlist is meant to be used to filter out any unexpected
@@ -27,16 +27,19 @@ const GA_FEATURES = [
 const BETA_FEATURES = [
     'i18n',
     'activitypub',
-    'webmentions',
-    'lexicalEditor'
+    'webmentions'
 ];
 
 const ALPHA_FEATURES = [
     'urlCache',
+    'lexicalEditor',
     'lexicalMultiplayer',
     'websockets',
     'stripeAutomaticTax',
-    'emailCustomization',
+    'makingItRain',
+    'postHistory',
+    'postDiffing',
+    'imageEditor',
     'signupCard',
     'collections',
     'adminXSettings'

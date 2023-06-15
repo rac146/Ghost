@@ -17,8 +17,7 @@ function EmailPreferencesAction() {
                         ? (
                             <p className="gh-portal-email-notice">
                                 <EmailDeliveryFailedIcon className="gh-portal-email-notice-icon" />
-                                <span className="gh-mobile-only">{t('You\'re not receiving emails')}</span>
-                                <span className="gh-desktop-only">{t('You\'re currently not receiving emails')}</span>
+                                <span>You're <span className="gh-mobile-shortener">currently </span>not receiving emails</span>
                             </p>
                         )
                         : <p>{t('Update your preferences')}</p>

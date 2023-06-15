@@ -2,6 +2,7 @@ import App from './App.tsx';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {ROOT_DIV_CLASS} from './utils/constants';
+import {SignupFormOptions} from './AppContext.ts';
 
 function getScriptTag(): HTMLElement {
     let scriptTag = document.currentScript as HTMLElement | null;
@@ -44,9 +45,18 @@ function init() {
     const scriptTag = getScriptTag();
     const root = getRootDiv(scriptTag);
 
+    const options: SignupFormOptions = {
+        title: scriptTag.dataset.title || undefined,
+        description: scriptTag.dataset.description || undefined,
+        logo: scriptTag.dataset.logo || undefined,
+        color: scriptTag.dataset.color || undefined,
+        site: scriptTag.dataset.site || window.location.origin,
+        labels: scriptTag.dataset.labels ? scriptTag.dataset.labels.split(',') : []
+    };
+
     ReactDOM.createRoot(root).render(
         <React.StrictMode>
-            <App scriptTag={scriptTag} />
+            <App options={options} />
         </React.StrictMode>
     );
 }

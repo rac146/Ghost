@@ -642,31 +642,6 @@
                     "name": "Browse mentions",
                     "action_type": "browse",
                     "object_type": "mention"
-                },
-                {
-                    "name": "Browse collections",
-                    "action_type": "browse",
-                    "object_type": "collection"
-                },
-                {
-                    "name": "Read collections",
-                    "action_type": "read",
-                    "object_type": "collection"
-                },
-                {
-                    "name": "Edit collections",
-                    "action_type": "edit",
-                    "object_type": "collection"
-                },
-                {
-                    "name": "Add collections",
-                    "action_type": "add",
-                    "object_type": "collection"
-                },
-                {
-                    "name": "Delete collections",
-                    "action_type": "destroy",
-                    "object_type": "collection"
                 }
             ]
         },
@@ -990,8 +965,7 @@
                     "explore": "read",
                     "comment": "all",
                     "link": "all",
-                    "mention": "browse",
-                    "collection": "all"
+                    "mention": "browse"
                 },
                 "DB Backup Integration": {
                     "db": "all"
@@ -1032,8 +1006,7 @@
                     "explore": "read",
                     "comment": "all",
                     "link": "all",
-                    "mention": "browse",
-                    "collection": "all"
+                    "mention": "browse"
                 },
                 "Editor": {
                     "notification": "all",
@@ -1050,8 +1023,7 @@
                     "snippet": "all",
                     "label": ["browse", "read"],
                     "product": ["browse", "read"],
-                    "newsletter": ["browse", "read"],
-                    "collection": "all"
+                    "newsletter": ["browse", "read"]
                 },
                 "Author": {
                     "post": ["browse", "read", "add"],
@@ -1066,8 +1038,7 @@
                     "snippet": ["browse", "read"],
                     "label": ["browse", "read"],
                     "product": ["browse", "read"],
-                    "newsletter": ["browse", "read"],
-                    "collection": ["browse", "read", "add"]
+                    "newsletter": ["browse", "read"]
                 },
                 "Contributor": {
                     "post": ["browse", "read", "add"],
@@ -1079,8 +1050,7 @@
                     "theme": ["browse"],
                     "email_preview": "read",
                     "email": "read",
-                    "snippet": ["browse", "read"],
-                    "collection": ["browse", "read"]
+                    "snippet": ["browse", "read"]
                 }
             }
         },

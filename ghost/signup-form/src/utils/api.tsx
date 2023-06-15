@@ -1,5 +1,3 @@
-import {getUrlHistory} from './helpers';
-
 export const setupGhostApi = ({siteUrl}: {siteUrl: string}) => {
     const apiPath = 'members/api';
 
@@ -18,8 +16,7 @@ export const setupGhostApi = ({siteUrl}: {siteUrl: string}) => {
             const payload = JSON.stringify({
                 email,
                 emailType: 'signup',
-                labels,
-                urlHistory: getUrlHistory({siteUrl})
+                labels
             });
 
             const response = await fetch(url, {
@@ -33,8 +30,10 @@ export const setupGhostApi = ({siteUrl}: {siteUrl: string}) => {
             });
 
             if (response.status < 200 || response.status >= 300) {
-                throw new Error(response.statusText);
+                return false;
             }
+
+            return true;
         }
     };
 };

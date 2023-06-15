@@ -1,13 +1,9 @@
-import MultiSelect, {MultiSelectOption} from '../../../admin-x-ds/global/form/MultiSelect';
-import React, {useContext, useEffect, useState} from 'react';
-import Select from '../../../admin-x-ds/global/form/Select';
+import Dropdown from '../../../admin-x-ds/global/Dropdown';
+import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {GroupBase, MultiValue} from 'react-select';
-import {ServicesContext} from '../../providers/ServiceProvider';
-import {Tier} from '../../../types/api';
-import {getOptionLabel, getSettingValues} from '../../../utils/helpers';
+import {getOptionLabel} from '../../../utils/helpers';
 
 const MEMBERS_SIGNUP_ACCESS_OPTIONS = [
     {value: 'all', label: 'Anyone can sign up'},
@@ -30,50 +26,21 @@ const COMMENTS_ENABLED_OPTIONS = [
 
 const Access: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [membersSignupAccess, defaultContentVisibility, defaultContentVisibilityTiers, commentsEnabled] = getSettingValues(localSettings, [
-        'members_signup_access', 'default_content_visibility', 'default_content_visibility_tiers', 'comments_enabled'
+    const [membersSignupAccess, defaultContentVisibility, commentsEnabled] = getSettingValues([
+        'members_signup_access', 'default_content_visibility', 'comments_enabled'
     ]) as string[];
 
     const membersSignupAccessLabel = getOptionLabel(MEMBERS_SIGNUP_ACCESS_OPTIONS, membersSignupAccess);
     const defaultContentVisibilityLabel = getOptionLabel(DEFAULT_CONTENT_VISIBILITY_OPTIONS, defaultContentVisibility);
     const commentsEnabledLabel = getOptionLabel(COMMENTS_ENABLED_OPTIONS, commentsEnabled);
-
-    const {api} = useContext(ServicesContext);
-    const [tiers, setTiers] = useState<Tier[]>([]);
-
-    useEffect(() => {
-        api.tiers.browse().then((response) => {
-            setTiers(response.tiers);
-        });
-    }, [api]);
-
-    const tierOptionGroups: GroupBase<MultiSelectOption>[] = [
-        {
-            label: 'Active Tiers',
-            options: tiers.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name}))
-        },
-        {
-            label: 'Archived Tiers',
-            options: tiers.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name}))
-        }
-    ];
-
-    const contentVisibilityTiers = JSON.parse(defaultContentVisibilityTiers || '[]') as string[];
-    const selectedTierOptions = tierOptionGroups.flatMap(group => group.options).filter(option => contentVisibilityTiers.includes(option.value));
-
-    const setSelectedTiers = (selectedOptions: MultiValue<MultiSelectOption>) => {
-        const selectedTiers = selectedOptions.map(option => option.value);
-        updateSetting('default_content_visibility_tiers', JSON.stringify(selectedTiers));
-    };
 
     const values = (
         <SettingGroupContent
@@ -99,7 +66,7 @@ const Access: React.FC = () => {
 
     const form = (
         <SettingGroupContent columns={1}>
-            <Select
+            <Dropdown
                 defaultSelectedOption={membersSignupAccess}
                 hint='Who should be able to subscribe to your site?'
                 options={MEMBERS_SIGNUP_ACCESS_OPTIONS}
@@ -108,7 +75,7 @@ const Access: React.FC = () => {
                     updateSetting('members_signup_access', value);
                 }}
             />
-            <Select
+            <Dropdown
                 defaultSelectedOption={defaultContentVisibility}
                 hint='When a new post is created, who should have access?'
                 options={DEFAULT_CONTENT_VISIBILITY_OPTIONS}
@@ -117,17 +84,7 @@ const Access: React.FC = () => {
                     updateSetting('default_content_visibility', value);
                 }}
             />
-            {defaultContentVisibility === 'tiers' && (
-                <MultiSelect
-                    color='black'
-                    defaultValues={selectedTierOptions}
-                    options={tierOptionGroups.filter(group => group.options.length > 0)}
-                    title='Select tiers'
-                    clearBg
-                    onChange={setSelectedTiers}
-                />
-            )}
-            <Select
+            <Dropdown
                 defaultSelectedOption={commentsEnabled}
                 hint='Who can comment on posts?'
                 options={COMMENTS_ENABLED_OPTIONS}
@@ -142,16 +99,13 @@ const Access: React.FC = () => {
     return (
         <SettingGroup
             description='Set up default access options for subscription and posts'
-            isEditing={isEditing}
-            navid='access'
-            saveState={saveState}
-            testId='access'
+            state={currentState}
             title='Access'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? form : values}
+            {currentState === 'view' ? values : form}
         </SettingGroup>
     );
 };

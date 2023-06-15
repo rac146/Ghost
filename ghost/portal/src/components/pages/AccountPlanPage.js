@@ -6,8 +6,6 @@ import BackButton from '../common/BackButton';
 import {MultipleProductsPlansSection} from '../common/PlansSection';
 import {getDateString} from '../../utils/date-time';
 import {allowCompMemberUpgrade, formatNumber, getAvailablePrices, getFilteredPrices, getMemberActivePrice, getMemberSubscription, getPriceFromSubscription, getProductFromPrice, getSubscriptionFromId, getUpgradeProducts, hasMultipleProductsFeature, isComplimentaryMember, isPaidMember} from '../../utils/helpers';
-import Interpolate from '@doist/react-interpolate';
-import {SYNTAX_I18NEXT} from '@doist/react-interpolate';
 
 export const AccountPlanPageStyles = `
     .account-plan.full-size .gh-portal-main-title {
@@ -40,21 +38,21 @@ export const AccountPlanPageStyles = `
     }
 `;
 
-function getConfirmationPageTitle({confirmationType, t}) {
+function getConfirmationPageTitle({confirmationType}) {
     if (confirmationType === 'changePlan') {
-        return t('Confirm subscription');
+        return 'Confirm subscription';
     } else if (confirmationType === 'cancel') {
-        return t('Cancel subscription');
+        return 'Cancel subscription';
     } else if (confirmationType === 'subscribe') {
-        return t('Subscribe');
+        return 'Subscribe';
     }
 }
 
 const Header = ({onBack, showConfirmation, confirmationType}) => {
-    const {member, t} = useContext(AppContext);
+    const {member} = useContext(AppContext);
     let title = isPaidMember({member}) ? 'Change plan' : 'Choose a plan';
     if (showConfirmation) {
-        title = getConfirmationPageTitle({confirmationType, t});
+        title = getConfirmationPageTitle({confirmationType});
     }
     return (
         <header className='gh-portal-detail-header'>
@@ -115,14 +113,13 @@ const PlanConfirmationSection = ({plan, type, onConfirm}) => {
     const subscription = getMemberSubscription({member});
     const isRunning = ['updateSubscription:running', 'checkoutPlan:running', 'cancelSubscription:running'].includes(action);
     const label = t('Confirm');
-    const planStartDate = getDateString(subscription.current_period_end);
+    let planStartDate = getDateString(subscription.current_period_end);
     const currentActivePlan = getMemberActivePrice({member});
-    let planStartingMessage = t('Starting {{startDate}}', {startDate: planStartDate});
     if (currentActivePlan.id !== plan.id) {
-        planStartingMessage = t('Starting today');
+        planStartDate = 'today';
     }
     const priceString = formatNumber(plan.price);
-    const planStartMessage = `${plan.currency_symbol}${priceString}/${plan.interval} – ${planStartingMessage}`;
+    const planStartMessage = `${plan.currency_symbol}${priceString}/${plan.interval} – Starting ${planStartDate}`;
     const product = getProductFromPrice({site, priceId: plan?.id});
     const priceLabel = hasMultipleProductsFeature({site}) ? product?.name : t('Price');
     if (type === 'changePlan') {
@@ -159,15 +156,7 @@ const PlanConfirmationSection = ({plan, type, onConfirm}) => {
     } else {
         return (
             <div className="gh-portal-logged-out-form-container gh-portal-cancellation-form">
-                <p>
-                    <Interpolate
-                        syntax={SYNTAX_I18NEXT}
-                        string={t(`If you cancel your subscription now, you will continue to have access until {{periodEnd}}.`)}
-                        mapping={{
-                            periodEnd: <strong>{getDateString(subscription.current_period_end)}</strong>
-                        }}
-                    />
-                </p>
+                <p>If you cancel your subscription now, you will continue to have access until <strong>{getDateString(subscription.current_period_end)}</strong>.</p>
                 <section className='gh-portal-input-section'>
                     <div className='gh-portal-input-labelcontainer'>
                         <label className='gh-portal-input-label'>{t('Cancellation reason')}</label>
@@ -192,7 +181,7 @@ const PlanConfirmationSection = ({plan, type, onConfirm}) => {
                     isRunning={isRunning}
                     isPrimary={true}
                     brandColor={brandColor}
-                    label={t('Confirm cancellation')}
+                    label={label + ' cancellation'}
                     style={{
                         width: '100%',
                         height: '40px'

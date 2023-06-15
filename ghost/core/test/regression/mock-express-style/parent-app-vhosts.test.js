@@ -1,7 +1,5 @@
 const should = require('should');
 const sinon = require('sinon');
-const path = require('path');
-
 const testUtils = require('../../utils');
 const localUtils = require('./utils');
 const configUtils = require('../../utils/configUtils');
@@ -28,10 +26,13 @@ describe('Integration - Web - vhosts', function () {
 
             configUtils.set('url', 'http://example.com');
             configUtils.set('admin:url', null);
-            configUtils.set('paths:adminAssets', path.resolve('test/utils/fixtures/admin-build'));
 
             app = await localUtils.initGhost({backend: true});
+        });
 
+        before(function () {
+            configUtils.set('url', 'http://example.com');
+            configUtils.set('admin:url', null);
             urlUtils.stubUrlUtilsFromConfig();
         });
 
@@ -133,12 +134,13 @@ describe('Integration - Web - vhosts', function () {
 
             configUtils.set('url', 'http://example.com');
             configUtils.set('admin:url', 'https://admin.example.com');
-            configUtils.set('paths:adminAssets', path.resolve('test/utils/fixtures/admin-build'));
 
             app = await localUtils.initGhost({backend: true});
 
             sinon.stub(themeEngine.getActive(), 'config').withArgs('posts_per_page').returns(2);
+        });
 
+        before(function () {
             urlUtils.stubUrlUtilsFromConfig();
         });
 
@@ -285,12 +287,13 @@ describe('Integration - Web - vhosts', function () {
             configUtils.set('url', 'http://example.com');
             configUtils.set('admin:url', 'https://admin.example.com');
             configUtils.set('admin:redirects', false);
-            configUtils.set('paths:adminAssets', path.resolve('test/utils/fixtures/admin-build'));
 
             sinon.stub(themeEngine.getActive(), 'config').withArgs('posts_per_page').returns(2);
 
             app = await localUtils.initGhost({backend: true});
+        });
 
+        before(function () {
             urlUtils.stubUrlUtilsFromConfig();
         });
 
@@ -323,12 +326,13 @@ describe('Integration - Web - vhosts', function () {
 
             configUtils.set('url', 'http://example.com');
             configUtils.set('admin:url', 'https://example.com');
-            configUtils.set('paths:adminAssets', path.resolve('test/utils/fixtures/admin-build'));
 
             sinon.stub(themeEngine.getActive(), 'config').withArgs('posts_per_page').returns(2);
 
             app = await localUtils.initGhost({backend: true});
+        });
 
+        before(function () {
             urlUtils.stubUrlUtilsFromConfig();
         });
 

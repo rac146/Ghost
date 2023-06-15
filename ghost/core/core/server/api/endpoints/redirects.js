@@ -18,8 +18,7 @@ module.exports = {
                                 : 'redirects.yaml';
                         });
                 }
-            },
-            cacheInvalidate: false
+            }
         },
         permissions: true,
         response: {

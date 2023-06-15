@@ -123,11 +123,6 @@ const KoenigEditor = (props) => {
     return <_KoenigEditor {...props} />;
 };
 
-const WordCountPlugin = (props) => {
-    const {WordCountPlugin: _WordCountPlugin} = editorResource.read();
-    return <_WordCountPlugin {...props} />;
-};
-
 export default class KoenigLexicalEditor extends Component {
     @service ajax;
     @service feature;
@@ -156,7 +151,7 @@ export default class KoenigLexicalEditor extends Component {
     get pinturaConfig() {
         const jsUrl = this.getImageEditorJSUrl();
         const cssUrl = this.getImageEditorCSSUrl();
-        if (!this.feature.lexicalEditor || !jsUrl || !cssUrl) {
+        if (!this.feature.imageEditor || !jsUrl || !cssUrl) {
             return null;
         }
         return {
@@ -200,14 +195,12 @@ export default class KoenigLexicalEditor extends Component {
 
         if (this.config.sentry_dsn) {
             Sentry.captureException(error, {
-                tags: {lexical: true},
-                contexts: {
-                    koenig: {
-                        version: window['@tryghost/koenig-lexical']?.version
-                    }
+                tags: {
+                    lexical: true
                 }
             });
         }
+
         // don't rethrow, Lexical will attempt to gracefully recover
     }
 
@@ -278,10 +271,7 @@ export default class KoenigLexicalEditor extends Component {
             fetchLabels,
             feature: {
                 signupCard: this.feature.get('signupCard')
-            },
-            membersEnabled: this.settings.get('membersSignupAccess') === 'all',
-            siteTitle: this.settings.title,
-            siteDescription: this.settings.description
+            }
         };
         const cardConfig = Object.assign({}, defaultCardConfig, props.cardConfig, {pinturaConfig: this.pinturaConfig});
 
@@ -488,7 +478,7 @@ export default class KoenigLexicalEditor extends Component {
         const multiplayerUsername = this.session.user.name;
 
         return (
-            <div className={['koenig-react-editor', 'koenig-lexical', this.args.className].filter(Boolean).join(' ')}>
+            <div className={['koenig-react-editor', this.args.className].filter(Boolean).join(' ')}>
                 <ErrorHandler>
                     <Suspense fallback={<p className="koenig-react-editor-loading">Loading editor...</p>}>
                         <KoenigComposer
@@ -500,7 +490,6 @@ export default class KoenigLexicalEditor extends Component {
                             multiplayerDocId={multiplayerDocId}
                             multiplayerEndpoint={multiplayerEndpoint}
                             onError={this.onError}
-                            darkMode={this.feature.nightShift}
                         >
                             <KoenigEditor
                                 cursorDidExitAtTop={this.args.cursorDidExitAtTop}
@@ -508,7 +497,6 @@ export default class KoenigLexicalEditor extends Component {
                                 onChange={this.args.onChange}
                                 registerAPI={this.args.registerAPI}
                             />
-                            <WordCountPlugin onChange={this.args.updateWordCount} />
                         </KoenigComposer>
                     </Suspense>
                 </ErrorHandler>

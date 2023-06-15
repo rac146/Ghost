@@ -4,9 +4,6 @@ module.exports = {
     docName: 'announcement',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         query(frame) {
             return announcementBarSettings.getAnnouncementSettings(frame.options.context?.member);

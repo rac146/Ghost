@@ -33,8 +33,7 @@ export default class FeedbackLexicalSendButtonComponent extends Component {
             StaffMemberEmail: this.session.user.email,
             StaffAccessLevel: this.session.user.role?.description,
             UserAgent: navigator.userAgent,
-            GhostVersion: this.config.version,
-            KoenigLexicalVersion: window['@tryghost/koenig-lexical'].version,
+            Version: this.config.version,
             Feedback: this.args.feedbackMessage
         };
 

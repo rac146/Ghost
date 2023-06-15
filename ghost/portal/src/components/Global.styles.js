@@ -219,13 +219,7 @@ export const GlobalStyles = `
             padding: 10vmin 28px;
         }
 
-        .gh-desktop-only {
-            display: none;
-        }
-    }
-
-    @media (min-width: 481px) {
-        .gh-mobile-only {
+        .gh-mobile-shortener {
             display: none;
         }
     }

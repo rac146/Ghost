@@ -39,15 +39,14 @@
             </span>
             <div class="gh-editor-feature-image">
                 <img src={{@image}}>
-                <div class="gh-editor-feature-image-overlay"></div>
-                {{#if (feature 'lexicalEditor')}}
+                {{#if (feature 'imageEditor')}}
                     <KoenigImageEditor
                         @imageSrc={{@image}}
                         @saveImage={{fn this.saveImage uploader.setFiles}}
                     />
                 {{/if}}
                 <button type="button" class="image-action image-delete" title="Delete image" {{on "click" @clearImage}}>
-                    {{svg-jar "koenig/kg-trash"}}
+                    {{svg-jar "trash"}}
                 </button>
             </div>
             <div class="flex justify-between align-center">

@@ -49,6 +49,9 @@ export default class Main extends Component.extend(ShortcutsMixin) {
     @and('config.clientExtensions.menu', 'session.user.isOwnerOnly')
         showMenuExtension;
 
+    @and('config.clientExtensions.script', 'session.user.isOwnerOnly')
+        showScriptExtension;
+
     @reads('config.hostSettings.billing.enabled')
         showBilling;
 

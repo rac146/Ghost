@@ -1,10 +1,10 @@
+import Dropdown from '../../../admin-x-ds/global/Dropdown';
 import React, {useEffect, useState} from 'react';
-import Select from '../../../admin-x-ds/global/form/Select';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import timezoneData from '@tryghost/timezone-data';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getLocalTime, getSettingValues} from '../../../utils/helpers';
+import {getLocalTime} from '../../../utils/helpers';
 
 interface TimezoneDataDropdownOption {
     name: string;
@@ -36,16 +36,15 @@ const Hint: React.FC<HintProps> = ({timezone}) => {
 
 const TimeZone: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [publicationTimezone] = getSettingValues(localSettings, ['timezone']) as string[];
+    const [publicationTimezone] = getSettingValues(['timezone']) as string[];
 
     const timezoneOptions = timezoneData.map((tzOption: TimezoneDataDropdownOption) => {
         return {
@@ -71,7 +70,7 @@ const TimeZone: React.FC = () => {
     );
     const inputFields = (
         <SettingGroupContent columns={1}>
-            <Select
+            <Dropdown
                 defaultSelectedOption={publicationTimezone}
                 hint={<Hint timezone={publicationTimezone} />}
                 options={timezoneOptions}
@@ -84,16 +83,13 @@ const TimeZone: React.FC = () => {
     return (
         <SettingGroup
             description='Set the time and date of your publication, used for all published posts'
-            isEditing={isEditing}
-            navid='timezone'
-            saveState={saveState}
-            testId='timezone'
+            state={currentState}
             title='Site timezone'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? inputFields : viewContent}
+            {currentState === 'view' ? viewContent : inputFields}
         </SettingGroup>
     );
 };

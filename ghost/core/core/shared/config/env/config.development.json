@@ -22,5 +22,17 @@
         "admin": {
             "maxAge": 0
         }
-    }
+    },
+    "mail": {
+        "transport": "SMTP",
+        "options": {
+          "service": "Google",
+          "host": "smtp.gmail.com",
+          "port": 587,
+          "auth": {
+            "user": "fake",
+            "pass": "fakepassword"
+          }
+        }
+      }
 }

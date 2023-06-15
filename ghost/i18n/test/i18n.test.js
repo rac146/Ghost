@@ -16,18 +16,4 @@ describe('i18n', function () {
             });
         });
     });
-
-    describe('Can use Signup-form resources', function () {
-        describe('Afrikaans', function () {
-            let t;
-
-            before(function () {
-                t = i18n('af', 'signup-form').t;
-            });
-
-            it('can translate `Now check your email!`', function () {
-                assert.equal(t('Now check your email!'), 'Kyk nou in jou e-pos!');
-            });
-        });
-    });
 });

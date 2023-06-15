@@ -3,9 +3,6 @@ const models = require('../../models');
 module.exports = {
     docName: 'roles',
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'permissions'
         ],

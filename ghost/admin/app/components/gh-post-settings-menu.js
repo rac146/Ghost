@@ -145,22 +145,15 @@ export default class GhPostSettingsMenu extends Component {
     }
 
     get canViewPostHistory() {
-        // Can only view history for lexical posts
-        if (this.post.lexical === null) {
-            return false;
+        let showPostHistory = this.feature.postHistory === true
+            && this.post.lexical !== null
+            && this.post.emailOnly === false;
+
+        if (this.post.isPublished === true) {
+            return showPostHistory && this.post.hasEmail === false;
         }
 
-        // Can view history for all unpublished/unsent posts
-        if (!this.post.isPublished && !this.post.isSent) {
-            return true;
-        }
-
-        // Cannot view history for published posts if there isn't a web version
-        if (this.post.emailOnly) {
-            return false;
-        }
-
-        return true;
+        return showPostHistory;
     }
 
     willDestroyElement() {

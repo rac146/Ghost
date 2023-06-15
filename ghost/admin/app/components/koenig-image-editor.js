@@ -1,5 +1,4 @@
 import Component from '@glimmer/component';
-import trackEvent from '../utils/analytics';
 import {action} from '@ember/object';
 import {inject} from 'ghost-admin/decorators/inject';
 import {inject as service} from '@ember/service';
@@ -145,11 +144,10 @@ export default class KoenigImageEditor extends Component {
             if (!imageUrl.searchParams.has('v')) {
                 imageUrl.searchParams.set('v', Date.now());
             }
-            trackEvent('Image Edit Button Clicked', {location: 'admin'});
+
             const imageSrc = imageUrl.href;
             const editor = window.pintura.openDefaultEditor({
                 src: imageSrc,
-                enableTransparencyGrid: true,
                 util: 'crop',
                 utils: [
                     'crop',
@@ -216,7 +214,6 @@ export default class KoenigImageEditor extends Component {
                     if (this.args.saveUrl) {
                         uploader.setFiles([result.dest]);
                     }
-                    trackEvent('Image Edit Saved', {location: 'admin'});
                 } catch (e) {
                     // Failed to save edited image
                 }

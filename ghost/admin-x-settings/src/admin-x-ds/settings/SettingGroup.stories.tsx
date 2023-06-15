@@ -47,7 +47,7 @@ export const TwoColumns: Story = {
 
 export const Editing: Story = {
     args: {
-        isEditing: true,
+        state: 'edit',
         title: SingleColumn.args?.title,
         description: SingleColumn.args?.description,
         children: twoColEdit
@@ -56,8 +56,7 @@ export const Editing: Story = {
 
 export const Unsaved: Story = {
     args: {
-        isEditing: true,
-        saveState: 'unsaved',
+        state: 'unsaved',
         title: SingleColumn.args?.title,
         description: SingleColumn.args?.description,
         children: twoColEdit
@@ -77,13 +76,5 @@ export const CustomHeader: Story = {
         title: SingleColumn.args?.title,
         description: SingleColumn.args?.description,
         customHeader: customHeader
-    }
-};
-
-export const NoBorders: Story = {
-    args: {
-        title: SingleColumn.args?.title,
-        description: SingleColumn.args?.description,
-        children: twoColView
     }
 };

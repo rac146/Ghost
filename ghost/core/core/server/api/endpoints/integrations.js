@@ -15,9 +15,6 @@ const integrationsService = getIntegrationsServiceInstance({
 module.exports = {
     docName: 'integrations',
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         options: [
             'include',
@@ -35,9 +32,6 @@ module.exports = {
         }
     },
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         data: [
             'id'
@@ -69,9 +63,6 @@ module.exports = {
         }
     },
     edit: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         data: [
             'name',
@@ -100,9 +91,6 @@ module.exports = {
     },
     add: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         data: [
             'name',
@@ -137,9 +125,6 @@ module.exports = {
     },
     destroy: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: true,
         options: [
             'id'

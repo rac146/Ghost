@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/ember';
 import Component from '@glimmer/component';
 import React, {Suspense} from 'react';
-import config from 'ghost-admin/config/environment';
 import {action} from '@ember/object';
 import {inject} from 'ghost-admin/decorators/inject';
 import {inject as service} from '@ember/service';
@@ -85,7 +84,7 @@ const AdminXApp = (props) => {
     return <_AdminXApp {...props} />;
 };
 
-export default class AdminXSettings extends Component {
+export default class KoenigLexicalEditor extends Component {
     @service ajax;
     @service feature;
     @service ghostPaths;
@@ -108,7 +107,7 @@ export default class AdminXSettings extends Component {
             });
         }
 
-        // don't rethrow, app should attempt to gracefully recover
+        // don't rethrow, Lexical will attempt to gracefully recover
     }
 
     ReactComponent = () => {
@@ -116,9 +115,7 @@ export default class AdminXSettings extends Component {
             <div className={['admin-x-settings-container-', this.args.className].filter(Boolean).join(' ')}>
                 <ErrorHandler>
                     <Suspense fallback={<p className="admin-x-settings-container--loading">Loading settings...</p>}>
-                        <AdminXApp
-                            ghostVersion={config.APP.version}
-                        />
+                        <AdminXApp />
                     </Suspense>
                 </ErrorHandler>
             </div>

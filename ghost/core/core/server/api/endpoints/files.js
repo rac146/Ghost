@@ -4,9 +4,6 @@ module.exports = {
     docName: 'files',
     upload: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: false,
         async query(frame) {
             const filePath = await storage.getStorage('files').save({

@@ -1,19 +1,15 @@
 import React, {ComponentProps} from 'react';
-import i18nLib from '@tryghost/i18n';
 import pages, {Page, PageName} from './pages';
-import {AppContextProvider, AppContextType} from './AppContext';
+import {AppContext, SignupFormOptions} from './AppContext';
 import {ContentBox} from './components/ContentBox';
 import {Frame} from './components/Frame';
 import {setupGhostApi} from './utils/api';
-import {useOptions} from './utils/options';
 
-type AppProps = {
-    scriptTag: HTMLElement;
+type Props = {
+    options: SignupFormOptions;
 };
 
-const App: React.FC<AppProps> = ({scriptTag}) => {
-    const options = useOptions(scriptTag);
-
+const App: React.FC<Props> = ({options}) => {
     const [page, setPage] = React.useState<Page>({
         name: 'FormPage',
         data: {}
@@ -30,28 +26,26 @@ const App: React.FC<AppProps> = ({scriptTag}) => {
         } as Page);
     };
 
-    const i18n = i18nLib(options.locale, 'signup-form');
-    const context: AppContextType = {
+    const context = {
         page,
         api,
         options,
-        setPage: _setPage,
-        t: i18n.t,
-        scriptTag
+        setPage: _setPage
     };
 
     const PageComponent = pages[page.name];
     const data = page.data as any; // issue with TypeScript understanding the type here when passing it to the component
+
     return (
-        <>
-            <AppContextProvider value={context}>
+        <div>
+            <AppContext.Provider value={context}>
                 <Frame>
                     <ContentBox>
                         <PageComponent {...data} />
                     </ContentBox>
                 </Frame>
-            </AppContextProvider>
-        </>
+            </AppContext.Provider>
+        </div>
     );
 };
 

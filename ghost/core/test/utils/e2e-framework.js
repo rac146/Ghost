@@ -13,7 +13,6 @@
 //
 // The output state checker is responsible for checking the response from the app after performing a request.
 const _ = require('lodash');
-const debug = require('@tryghost/debug')('test');
 const {sequence} = require('@tryghost/promise');
 const {any, stringMatching} = require('@tryghost/express-test').snapshot;
 const {AsymmetricMatcher} = require('expect');
@@ -44,10 +43,6 @@ const DomainEvents = require('@tryghost/domain-events');
 // Require additional assertions which help us keep our tests small and clear
 require('./assertions');
 
-let totalResetTime = 0;
-let totalStartTime = 0;
-let totalBoots = 0;
-
 /**
  * @param {Object} [options={}]
  * @param {Boolean} [options.backend] Boot the backend
@@ -73,9 +68,6 @@ const startGhost = async (options = {}) => {
     // Adapter cache has to be cleared to avoid reusing cached adapter instances between restarts
     adapterManager.clearCache();
 
-    // Reset the URL service so we clear out all the listeners
-    urlServiceUtils.resetGenerators();
-
     const defaults = {
         backend: true,
         frontend: false,
@@ -83,17 +75,11 @@ const startGhost = async (options = {}) => {
     };
 
     // Ensure the state of all data, including DB and caches
-    const resetDataNow = Date.now();
     await resetData();
-    totalResetTime += Date.now() - resetDataNow;
 
     const bootOptions = Object.assign({}, defaults, options);
 
-    const bootNow = Date.now();
     const ghostServer = await boot(bootOptions);
-    const bootTime = Date.now() - bootNow;
-    totalStartTime += bootTime;
-    totalBoots += 1;
 
     if (bootOptions.frontend) {
         await urlServiceUtils.isFinished();
@@ -101,10 +87,6 @@ const startGhost = async (options = {}) => {
 
     // Disable network in tests at the start
     mockManager.disableNetwork();
-
-    debug(`[e2e-framework] Started Ghost in ${bootTime / 1000}s`);
-    debug(`[e2e-framework] Accumulated start time across ${totalBoots} boots is ${totalStartTime / 1000}s (average = ${Math.round(totalStartTime / totalBoots)}ms)`);
-    debug(`[e2e-framework] Accumulated reset time across ${totalBoots} boots is ${totalResetTime / 1000}s (average = ${Math.round(totalResetTime / totalBoots)}ms)`);
 
     return ghostServer;
 };

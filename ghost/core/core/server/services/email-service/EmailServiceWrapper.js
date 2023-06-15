@@ -94,8 +94,7 @@ class EmailServiceWrapper {
             emailSegmenter,
             emailRenderer,
             db,
-            sentry,
-            debugStorageFilePath: configService.getContentPath('data')
+            sentry
         });
 
         this.renderer = emailRenderer;

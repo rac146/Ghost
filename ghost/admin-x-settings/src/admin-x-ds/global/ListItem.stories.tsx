@@ -1,7 +1,6 @@
 import React from 'react';
 import type {Meta, StoryObj} from '@storybook/react';
 
-import Avatar from './Avatar';
 import Button from './Button';
 import ListItem from './ListItem';
 
@@ -45,13 +44,5 @@ export const HiddenActions: Story = {
             const clickedDiv = e.currentTarget;
             alert(`Clicked on "${clickedDiv.id}"`);
         }
-    }
-};
-
-export const WithAvatar: Story = {
-    args: {
-        ...HiddenActions.args,
-        avatar: (<Avatar bgColor='green' label='DV' labelColor='white' />),
-        hideActions: false
     }
 };

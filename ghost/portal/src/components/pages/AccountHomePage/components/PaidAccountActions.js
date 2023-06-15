@@ -6,7 +6,7 @@ import {ReactComponent as OfferTagIcon} from '../../../../images/icons/offer-tag
 import {useContext} from 'react';
 
 const PaidAccountActions = () => {
-    const {member, site, onAction, t} = useContext(AppContext);
+    const {member, site, onAction} = useContext(AppContext);
 
     const onEditBilling = () => {
         const subscription = getMemberSubscription({member});
@@ -30,16 +30,17 @@ const PaidAccountActions = () => {
         } = subscription || {};
         let label = '';
         if (price) {
-            const {amount = 0, currency, interval} = price;
-            label = `${Intl.NumberFormat('en', {currency, style: 'currency'}).format(amount / 100)}/${interval}`;
+            console.log(price);
+            const {amount = 0, currency, nickname} = price;
+            label = `${Intl.NumberFormat('en', {currency, style: 'currency'}).format(amount / 100)}/${nickname}`;
         }
-        let offerLabelStr = getOfferLabel({price, offer, subscriptionStartDate: startDate, t});
+        let offerLabelStr = getOfferLabel({price, offer, subscriptionStartDate: startDate});
         const compExpiry = getCompExpiry({member});
         if (isComplimentary) {
             if (compExpiry) {
-                label = `${t('Complimentary')} - ${t('Expires {{expiryDate}}', {expiryDate: compExpiry})}`;
+                label = `Complimentary - Expires ${compExpiry}`;
             } else {
-                label = label ? `${t('Complimentary')} (${label})` : t(`Complimentary`);
+                label = label ? `Complimentary (${label})` : `Complimentary`;
             }
         }
         let oldPriceClassName = '';
@@ -68,7 +69,7 @@ const PaidAccountActions = () => {
                     <p className={oldPriceClassName}>
                         {label}
                     </p>
-                    <FreeTrialLabel subscription={subscription} t={t} />
+                    <FreeTrialLabel subscription={subscription} />
                 </>
             );
         }
@@ -88,12 +89,18 @@ const PaidAccountActions = () => {
         if (hideUpgrade || hasOnlyFreePlan({site})) {
             return null;
         }
+
+        if(subscription?.plan.interval == 'oneTime') {
+            return null;
+        }
+
+
         return (
             <button
                 className='gh-portal-btn gh-portal-btn-list' onClick={e => openUpdatePlan(e)}
                 data-test-button='change-plan'
             >
-                {t('Change')}
+                Change
             </button>
         );
     };
@@ -114,15 +121,19 @@ const PaidAccountActions = () => {
         const {action} = useContext(AppContext);
         const label = action === 'editBilling:running' ? (
             <LoaderIcon className='gh-portal-billing-button-loader' />
-        ) : t('Update');
+        ) : 'Update';
         if (isComplimentary) {
+            return null;
+        }
+
+        if(subscription?.plan.interval == 'oneTime') {
             return null;
         }
 
         return (
             <section>
                 <div className='gh-portal-list-detail'>
-                    <h3>{t('Billing info')}</h3>
+                    <h3>Billing info</h3>
                     <CardLabel defaultCardLast4={defaultCardLast4} />
                 </div>
                 <button
@@ -143,7 +154,7 @@ const PaidAccountActions = () => {
             price,
             default_payment_card_last4: defaultCardLast4
         } = subscription || {};
-        let planLabel = t('Plan');
+        let planLabel = 'Plan';
 
         // Show name of tiers if there are multiple tiers
         if (hasMultipleProductsFeature({site}) && getMemberTierName({member})) {
@@ -169,13 +180,13 @@ const PaidAccountActions = () => {
     return null;
 };
 
-function FreeTrialLabel({subscription, priceLabel, t}) {
+function FreeTrialLabel({subscription, priceLabel}) {
     if (subscriptionHasFreeTrial({sub: subscription})) {
         const trialEnd = getDateString(subscription.trial_end_at);
         return (
             <p className="gh-portal-account-discountcontainer">
                 <div>
-                    <span>{t('Free Trial – Ends {{trialEnd}}', {trialEnd})}</span>
+                    <span>Free Trial – Ends {trialEnd}</span>
                     {/* <span>{getSubFreeTrialDaysLeft({sub: subscription})} days left</span> */}
                 </div>
             </p>
@@ -184,7 +195,7 @@ function FreeTrialLabel({subscription, priceLabel, t}) {
     return null;
 }
 
-function getOfferLabel({offer, price, subscriptionStartDate, t}) {
+function getOfferLabel({offer, price, subscriptionStartDate}) {
     let offerLabel = '';
 
     if (offer?.type === 'trial') {
@@ -199,7 +210,7 @@ function getOfferLabel({offer, price, subscriptionStartDate, t}) {
         const discountDuration = offer.duration;
         let durationLabel = '';
         if (discountDuration === 'forever') {
-            durationLabel = t(`Forever`);
+            durationLabel = `Forever`;
         } else if (discountDuration === 'repeating') {
             const durationInMonths = offer.duration_in_months || 0;
             let offerStartDate = new Date(subscriptionStartDate);
@@ -208,7 +219,7 @@ function getOfferLabel({offer, price, subscriptionStartDate, t}) {
             if (isInThePast(offerEndDate)) {
                 return '';
             }
-            durationLabel = t('Ends {{offerEndDate}}', {offerEndDate: getDateString(offerEndDate)});
+            durationLabel = `Ends ${getDateString(offerEndDate)}`;
         }
         offerLabel = `${getUpdatedOfferPrice({offer, price, useFormatted: true})}/${price.interval}${durationLabel ? ` — ${durationLabel}` : ``}`;
     }

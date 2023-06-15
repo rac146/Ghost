@@ -22,8 +22,7 @@ module.exports = {
         statusCode: 201,
         headers: {
             // NOTE: remove if there is ever a 'read' method
-            location: false,
-            cacheInvalidate: false
+            location: false
         },
         options: [],
         data: [],
@@ -34,9 +33,6 @@ module.exports = {
     },
 
     edit: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: {
             before: (frame) => {
                 if (frame.options.context && frame.options.context.integration && frame.options.context.integration.id) {
@@ -88,9 +84,7 @@ module.exports = {
 
     destroy: {
         statusCode: 204,
-        headers: {
-            cacheInvalidate: false
-        },
+        headers: {},
         options: [
             'id'
         ],

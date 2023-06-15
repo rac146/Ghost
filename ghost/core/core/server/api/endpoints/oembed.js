@@ -4,9 +4,6 @@ module.exports = {
     docName: 'oembed',
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: false,
         data: [
             'url',

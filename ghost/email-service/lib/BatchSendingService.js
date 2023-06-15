@@ -1,3 +1,4 @@
+const uniqBy = require('lodash/uniqBy');
 const logging = require('@tryghost/logging');
 const ObjectID = require('bson-objectid').default;
 const errors = require('@tryghost/errors');
@@ -31,7 +32,6 @@ class BatchSendingService {
     #models;
     #db;
     #sentry;
-    #debugStorageFilePath;
 
     // Retry database queries happening before sending the email
     #BEFORE_RETRY_CONFIG = {maxRetries: 10, maxTime: 10 * 60 * 1000, sleep: 2000};
@@ -54,7 +54,6 @@ class BatchSendingService {
      * @param {object} [dependencies.BEFORE_RETRY_CONFIG]
      * @param {object} [dependencies.AFTER_RETRY_CONFIG]
      * @param {object} [dependencies.MAILGUN_API_RETRY_CONFIG]
-     * @param {string} [dependencies.debugStorageFilePath]
      */
     constructor({
         emailRenderer,
@@ -66,8 +65,7 @@ class BatchSendingService {
         sentry,
         BEFORE_RETRY_CONFIG,
         AFTER_RETRY_CONFIG,
-        MAILGUN_API_RETRY_CONFIG,
-        debugStorageFilePath
+        MAILGUN_API_RETRY_CONFIG
     }) {
         this.#emailRenderer = emailRenderer;
         this.#sendingService = sendingService;
@@ -76,7 +74,6 @@ class BatchSendingService {
         this.#models = models;
         this.#db = db;
         this.#sentry = sentry;
-        this.#debugStorageFilePath = debugStorageFilePath;
 
         if (BEFORE_RETRY_CONFIG) {
             this.#BEFORE_RETRY_CONFIG = BEFORE_RETRY_CONFIG;
@@ -415,6 +412,19 @@ class BatchSendingService {
                 {...this.#getBeforeRetryConfig(email), description: `getBatchMembers batch ${originalBatch.id}`}
             );
 
+            if (members.length > this.#sendingService.getMaximumRecipients()) {
+                // @NOTE the unique by member_id is a best effort to make sure we don't send the same email to the same member twice
+                logging.error(`Email batch ${originalBatch.id} has ${members.length} members, which exceeds the maximum of ${this.#sendingService.getMaximumRecipients()}. Filtering to unique members`);
+                members = uniqBy(members, 'email');
+
+                if (members.length > this.#sendingService.getMaximumRecipients()) {
+                    // @NOTE this is a best effort logic to still try sending an email batch
+                    //       even if it exceeds the maximum recipients limit of the sending service
+                    logging.error(`Email batch ${originalBatch.id} has ${members.length} members, which exceeds the maximum of ${this.#sendingService.getMaximumRecipients()}. Truncating to ${this.#sendingService.getMaximumRecipients()}`);
+                    members = members.slice(0, this.#sendingService.getMaximumRecipients());
+                }
+            }
+
             const response = await this.retryDb(async () => {
                 return await this.#sendingService.send({
                     emailId: email.id,
@@ -501,25 +511,9 @@ class BatchSendingService {
      * @returns {Promise<MemberLike[]>}
      */
     async getBatchMembers(batchId) {
-        let models = await this.#models.EmailRecipient.findAll({filter: `batch_id:${batchId}`, withRelated: ['member', 'member.stripeSubscriptions', 'member.products']});
+        const models = await this.#models.EmailRecipient.findAll({filter: `batch_id:${batchId}`, withRelated: ['member', 'member.stripeSubscriptions', 'member.products']});
 
-        const BATCH_SIZE = this.#sendingService.getMaximumRecipients();
-        if (models.length > BATCH_SIZE) {
-            // @NOTE: filtering by batch_id is our best effort to "correct" returned data
-            logging.warn(`Email batch ${batchId} has ${models.length} members, which exceeds the maximum of ${BATCH_SIZE} members per batch. Filtering by batch_id: ${batchId}`);
-            models = models.filter(m => m.get('batch_id') === batchId);
-
-            if (models.length > BATCH_SIZE) {
-                // @NOTE this is a best effort logic to still try sending an email batch
-                //       even if it exceeds the maximum recipients limit of the sending service.
-                //       In theory this should never happen, but being extra safe to make sure
-                //       the email delivery still happens.
-                logging.error(`Email batch ${batchId} has ${models.length} members, which exceeds the maximum of ${BATCH_SIZE}. Truncating to ${BATCH_SIZE}`);
-                models = models.slice(0, BATCH_SIZE);
-            }
-        }
-
-        return models.map((model) => {
+        const mappedMemberLikes = models.map((model) => {
             // Map subscriptions
             const subscriptions = model.related('member').related('stripeSubscriptions').toJSON();
             const tiers = model.related('member').related('products').toJSON();
@@ -535,6 +529,13 @@ class BatchSendingService {
                 tiers
             };
         });
+
+        const BATCH_SIZE = this.#sendingService.getMaximumRecipients();
+        if (mappedMemberLikes.length > BATCH_SIZE) {
+            logging.error(`Batch ${batchId} has ${mappedMemberLikes.length} members, but the sending service only supports ${BATCH_SIZE} members per batch.`);
+        }
+
+        return mappedMemberLikes;
     }
 
     /**

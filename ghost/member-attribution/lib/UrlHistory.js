@@ -45,15 +45,14 @@ class UrlHistory {
     /**
      * @private
      * @param {any[]} history
-     * @returns {history is UrlHistoryArray}
+     * @returns {boolean}
      */
     static isValidHistory(history) {
         for (const item of history) {
             const isValidIdEntry = typeof item?.id === 'string' && typeof item?.type === 'string' && ALLOWED_TYPES.includes(item.type);
             const isValidPathEntry = typeof item?.path === 'string';
-            const isValidReferrerSource = typeof item?.referrerSource === 'string';
 
-            const isValidEntry = isValidPathEntry || isValidIdEntry || isValidReferrerSource;
+            const isValidEntry = isValidPathEntry || isValidIdEntry;
 
             if (!isValidEntry || !Number.isSafeInteger(item?.time)) {
                 return false;

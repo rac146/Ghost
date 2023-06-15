@@ -5,9 +5,6 @@ module.exports = {
 
     add: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
         validation: {
             data: {
                 post_id: {

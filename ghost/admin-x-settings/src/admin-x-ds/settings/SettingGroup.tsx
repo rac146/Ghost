@@ -2,99 +2,78 @@ import ButtonGroup from '../global/ButtonGroup';
 import React from 'react';
 import SettingGroupHeader from './SettingGroupHeader';
 import {IButton} from '../global/Button';
-import {SaveState} from '../../hooks/useForm';
+
+export type TSettingGroupStates = 'view' | 'edit' | 'unsaved';
 
 interface SettingGroupProps {
     navid?:string;
-    testId?: string;
     title?: string;
     description?: React.ReactNode;
-    isEditing?: boolean;
-    saveState?: SaveState;
+    state?: TSettingGroupStates;
     customHeader?: React.ReactNode;
     customButtons?: React.ReactNode;
     children?: React.ReactNode;
-    hideEditButton?: boolean;
-    alwaysShowSaveButton?: boolean;
-
-    /**
-     * Remove borders and paddings
-     */
-    border?: boolean;
-    styles?: string;
 
     /**
      * Default buttons only appear if onStateChange is implemented
      */
-    onEditingChange?: (isEditing: boolean) => void
+    onStateChange?: (newState: TSettingGroupStates) => void
     onSave?: () => void
     onCancel?: () => void
 }
 
 const SettingGroup: React.FC<SettingGroupProps> = ({
     navid,
-    testId,
     title,
     description,
-    isEditing,
-    saveState,
+    state,
     customHeader,
     customButtons,
     children,
-    hideEditButton,
-    alwaysShowSaveButton = true,
-    border = true,
-    styles,
-    onEditingChange,
+    onStateChange,
     onSave,
     onCancel
 }) => {
     const handleEdit = () => {
-        onEditingChange?.(true);
+        if (onStateChange) {
+            onStateChange('edit');
+        }
     };
 
     const handleCancel = () => {
         onCancel?.();
-        onEditingChange?.(false);
+        onStateChange?.('view');
     };
 
     const handleSave = () => {
         onSave?.();
+        onStateChange?.('view');
     };
 
-    if (saveState === 'unsaved') {
-        styles += ' border-green';
-    } else if (isEditing){
-        styles += ' border-grey-300';
-    } else {
-        styles += ' border-grey-200';
+    let styles = '';
+
+    switch (state) {
+    case 'edit':
+        styles = 'border-grey-300';
+        break;
+
+    case 'unsaved':
+        styles = 'border-green';
+        break;
+
+    default:
+        styles = 'border-grey-200';
+        break;
     }
 
-    let viewButtons = [];
-
-    if (!hideEditButton) {
-        let label = 'Edit';
-        if (saveState === 'saved') {
-            label = 'Saved';
+    const viewButtons = [
+        {
+            label: 'Edit',
+            key: 'edit',
+            color: 'green',
+            onClick: handleEdit
         }
-        viewButtons.push(
-            {
-                label,
-                key: 'edit',
-                color: 'green',
-                onClick: handleEdit
-            }
-        );
-    } else if (saveState === 'saved') {
-        viewButtons.push(
-            {
-                label: 'Saved',
-                key: 'edit',
-                color: 'green',
-                onClick: handleEdit
-            }
-        );
-    }
+    ];
 
     let editButtons: IButton[] = [
         {
@@ -104,14 +83,10 @@ const SettingGroup: React.FC<SettingGroupProps> = ({
         }
     ];
 
-    if (saveState === 'unsaved' || alwaysShowSaveButton) {
-        let label = 'Save';
-        if (saveState === 'saving') {
-            label = 'Saving...';
-        }
+    if (state === 'unsaved') {
         editButtons.push(
             {
-                label,
+                label: 'Save',
                 key: 'save',
                 color: 'green',
                 onClick: handleSave
@@ -120,12 +95,11 @@ const SettingGroup: React.FC<SettingGroupProps> = ({
     }
 
     return (
-        <div className={`relative flex flex-col gap-6 rounded ${border && 'border p-5 md:p-7'} ${styles}`} data-testid={testId}>
-            <div className='absolute top-[-60px]' id={navid && navid}></div>
+        <div className={`flex flex-col gap-6 rounded border p-5 md:p-7 ${styles}`} id={navid && navid}>
             {customHeader ? customHeader :
                 <SettingGroupHeader description={description} title={title!}>
-                    {customButtons ? customButtons :
-                        (onEditingChange && <ButtonGroup buttons={isEditing ? editButtons : viewButtons} link={true} />)}
+                    {customButtons ? customButtons : 
+                        (onStateChange && <ButtonGroup buttons={state === 'view' ? viewButtons : editButtons} link={true} />)}
                 </SettingGroupHeader>
             }
             {children}

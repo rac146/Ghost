@@ -16,7 +16,6 @@ export default class ModalMemberTier extends ModalComponent {
     @tracked selectedTier = null;
     @tracked loadingTiers = false;
     @tracked expiryAt = 'forever';
-    @tracked customExpiryDate = moment().startOf('day');
 
     @tracked expiryOptions = [
         {
@@ -38,16 +37,12 @@ export default class ModalMemberTier extends ModalComponent {
         {
             label: '1 Year',
             duration: 'year'
-        },
-        {
-            label: 'Custom',
-            duration: 'custom'
         }
     ];
 
     @task({drop: true})
     *fetchTiers() {
-        this.tiers = yield this.store.query('tier', {filter: 'type:paid+active:true', include: 'monthly_price,yearly_price,benefits'});
+        this.tiers = yield this.store.query('tier', {filter: 'type:paid+active:true', include: 'one_time_price,monthly_price,yearly_price,benefits'});
 
         this.loadingTiers = false;
         if (this.tiers.length > 0) {
@@ -68,10 +63,6 @@ export default class ModalMemberTier extends ModalComponent {
 
     get cannotAddPrice() {
         return !this.price || this.price.amount !== 0;
-    }
-
-    get minCustomDate() {
-        return moment().startOf('day');
     }
 
     @action
@@ -106,11 +97,6 @@ export default class ModalMemberTier extends ModalComponent {
         this.expiryAt = expiryDuration;
     }
 
-    @action
-    updateCustomExpiryDate(date) {
-        this.customExpiryDate = moment(date).startOf('day');
-    }
-
     @task({drop: true})
     *addTier() {
         const url = `${this.ghostPaths.url.api(`members/${this.member.get('id')}`)}?include=tiers`;
@@ -136,12 +122,6 @@ export default class ModalMemberTier extends ModalComponent {
             expiryAt = moment.utc().add(6, 'months').startOf('day').toISOString();
         } else if (this.expiryAt === 'year') {
             expiryAt = moment.utc().add(1, 'year').startOf('day').toISOString();
-        } else if (this.expiryAt === 'custom') {
-            expiryAt = this.customExpiryDate
-                .endOf('day')
-                .set('milliseconds', 0) // Prevent db rounding up to the next day
-                .add(moment().utcOffset(), 'minutes') // Adjust for timezone offset
-                .toISOString();
         }
         const tiersData = {
             id: this.selectedTier

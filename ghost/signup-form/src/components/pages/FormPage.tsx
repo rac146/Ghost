@@ -1,19 +1,44 @@
-import React from 'react';
-import {FormView} from './FormView';
+import React, {FormEventHandler} from 'react';
+import {AppContext} from '../../AppContext';
 import {isMinimal} from '../../utils/helpers';
 import {isValidEmail} from '../../utils/validator';
-import {useAppContext} from '../../AppContext';
 
-export const FormPage: React.FC = () => {
+type Props = {};
+
+export const FormPage: React.FC<Props> = () => {
+    const {options} = React.useContext(AppContext);
+
+    if (isMinimal(options)) {
+        return (
+            <Form />
+        );
+    }
+
+    const title = options.title;
+    const description = options.description;
+    const logo = options.logo;
+
+    return <div className='bg-grey-300 p-24'>
+        {logo && <img alt={title} src={logo} width='100' />}
+        {title && <h1 className="text-4xl font-bold">{title}</h1>}
+        {description && <p className='pb-3'>{description}</p>}
+
+        <Form />
+    </div>;
+};
+
+const Form: React.FC<Props> = () => {
+    const [email, setEmail] = React.useState('');
     const [error, setError] = React.useState('');
     const [loading, setLoading] = React.useState(false);
-    const [success, setSuccess] = React.useState(false);
-    const {api, setPage, options, t} = useAppContext();
-    const minimal = isMinimal(options);
+    const {api, setPage, options} = React.useContext(AppContext);
+    const labels = options.labels;
 
-    const submit = async ({email}: { email: string }) => {
+    const submit: FormEventHandler<HTMLFormElement> = async (e) => {
+        e.preventDefault();
+
         if (!isValidEmail(email)) {
-            setError(t(`Please enter a valid email address`));
+            setError('Please enter a valid email address');
             return;
         }
 
@@ -21,35 +46,25 @@ export const FormPage: React.FC = () => {
         setLoading(true);
 
         try {
-            await api.sendMagicLink({email, labels: options.labels});
-
-            if (minimal) {
-                // Don't go to the success page, but show the success state in the form
-                setSuccess(true);
-                setLoading(false);
-            } else {
-                setPage('SuccessPage', {
-                    email
-                });
-            }
+            await api.sendMagicLink({email, labels});
+            setPage('SuccessPage', {
+                email
+            });
         } catch (_) {
             setLoading(false);
-            setError(t(`Something went wrong, please try again.`));
+            setError('Something went wrong, please try again.');
         }
     };
 
-    return <FormView
-        backgroundColor={options.backgroundColor}
-        buttonColor={options.buttonColor}
-        buttonTextColor={options.buttonTextColor}
-        description={options.description}
-        error={error}
-        icon={options.icon}
-        isMinimal={minimal}
-        loading={loading}
-        success={success}
-        textColor={options.textColor}
-        title={options.title}
-        onSubmit={submit}
-    />;
+    const borderStyle = error ? 'border-red-500' : 'border-grey-500';
+
+    return (
+        <div>
+            <form className='flex' onSubmit={submit}>
+                <input className={'flex-1 p-3 border ' + borderStyle} disabled={loading} placeholder='jamie@example.com' type="text" value={email} onChange={e => setEmail(e.target.value)}/>
+                <button className='bg-accent p-3 text-white' disabled={loading} type='submit'>Subscribe</button>
+            </form>
+            {error && <p className='pt-0.5 text-red-500'>{error}</p>}
+        </div>
+    );
 };

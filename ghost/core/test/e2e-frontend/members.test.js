@@ -455,8 +455,6 @@ describe('Front-end members behavior', function () {
                     .expect(200)
                     .expect(assertContentIsPresent);
 
-                await DomainEvents.allSettled();
-
                 assert(spy.calledOnce, 'A page view from a member should generate a MemberPageViewEvent event');
                 member = await models.Member.findOne({email});
                 assert.notEqual(member.get('last_seen_at'), null, 'The member should have a `last_seen_at` property after having visited a page while logged-in.');
@@ -538,8 +536,6 @@ describe('Front-end members behavior', function () {
                     .get('/free-to-see/')
                     .expect(200)
                     .expect(assertContentIsPresent);
-
-                await DomainEvents.allSettled();
 
                 assert(spy.calledOnce, 'A page view from a member should generate a MemberPageViewEvent event');
                 member = await models.Member.findOne({email});

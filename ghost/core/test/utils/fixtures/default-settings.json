@@ -538,7 +538,7 @@
     },
     "pintura": {
         "pintura": {
-            "defaultValue": "true",
+            "defaultValue": "false",
             "validations": {
                 "isIn": [
                     [

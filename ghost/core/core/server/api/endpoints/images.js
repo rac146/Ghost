@@ -8,9 +8,6 @@ module.exports = {
     docName: 'images',
     upload: {
         statusCode: 201,
-        headers: {
-            cacheInvalidate: false
-        },
         permissions: false,
         async query(frame) {
             const store = storage.getStorage('images');

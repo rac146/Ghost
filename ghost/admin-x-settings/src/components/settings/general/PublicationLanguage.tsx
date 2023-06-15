@@ -1,23 +1,21 @@
 import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextField from '../../../admin-x-ds/global/form/TextField';
+import TextField from '../../../admin-x-ds/global/TextField';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {getSettingValues} from '../../../utils/helpers';
 
 const PublicationLanguage: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
         focusRef,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [publicationLanguage] = getSettingValues(localSettings, ['locale']) as string[];
+    const [publicationLanguage] = getSettingValues(['locale']) as string[];
 
     const handleLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('locale', e.target.value);
@@ -56,16 +54,13 @@ const PublicationLanguage: React.FC = () => {
     return (
         <SettingGroup
             description="Set the language/locale which is used on your site"
-            isEditing={isEditing}
-            navid='publication-language'
-            saveState={saveState}
-            testId='publication-language'
+            state={currentState}
             title="Publication Language"
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? inputFields : values}
+            {currentState === 'view' ? values : inputFields }
         </SettingGroup>
     );
 };

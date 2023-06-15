@@ -1,5 +1,6 @@
 import Component from '@glimmer/component';
 import RestoreRevisionModal from '../components/modals/restore-revision';
+import diff from 'node-htmldiff';
 import {action, set} from '@ember/object';
 import {inject as service} from '@ember/service';
 import {tracked} from '@glimmer/tracking';
@@ -22,8 +23,11 @@ function checkFinishedRendering(element, done) {
 export default class ModalPostHistory extends Component {
     @service notifications;
     @service modals;
+    @service feature;
     @service ghostPaths;
     @tracked selectedHTML = null;
+    @tracked diffHtml = null;
+    @tracked showDifferences = this.feature.get('postDiffing'); // should default to true in future
     @tracked selectedRevisionIndex = 0;
 
     constructor() {
@@ -37,12 +41,20 @@ export default class ModalPostHistory extends Component {
         return this.revisionList[this.selectedRevisionIndex];
     }
 
+    get comparisonRevision() {
+        return this.revisionList[this.selectedRevisionIndex + 1] || this.selectedRevision;
+    }
+
+    get previousTitle() {
+        return this.comparisonRevision.title || this.post.get('title');
+    }
+
     get currentTitle() {
         return this.selectedRevision.title || this.post.get('title');
     }
 
     get revisionList() {
-        const revisions = this.post.get('postRevisions').toArray().sort((a, b) => b.get('createdAt') - a.get('createdAt'));
+        const revisions = this.post.get('postRevisions').toArray().sort((a, b) => b.get('createdAt') - a.get('createdAt'));  
         return revisions.map((revision, index) => {
             return {
                 lexical: revision.get('lexical'),
@@ -66,7 +78,7 @@ export default class ModalPostHistory extends Component {
 
     @action
     onInsert() {
-        this.updateSelectedHTML();
+        this.updateDiff();
         window.addEventListener('keydown', this.handleKeyDown);
     }
 
@@ -86,7 +98,7 @@ export default class ModalPostHistory extends Component {
     @action
     handleClick(index) {
         this.selectedRevisionIndex = index;
-        this.updateSelectedHTML();
+        this.updateDiff();
     }
 
     @action
@@ -131,35 +143,97 @@ export default class ModalPostHistory extends Component {
         });
     }
 
+    @action
+    toggleDifferences() {
+        this.showDifferences = !this.showDifferences;
+    }
+
     get cardConfig() {
         return {
             post: this.args.model
         };
     }
 
-    updateSelectedHTML() {
-        if (this.selectedEditor) {
+    calculateHTMLDiff(previousHTML, currentHTML) {
+        const result = diff(previousHTML, currentHTML);
+        const div = document.createElement('div');
+        div.innerHTML = result;
+        this.diffCards(div);
+        return div.innerHTML;
+    }
+
+    diffCards(div) {
+        const cards = div.querySelectorAll('div[data-kg-card]');
+        for (const card of cards) {
+            const hasChanges = !!card.querySelectorAll('del').length || !!card.querySelectorAll('ins').length;
+            if (hasChanges) {
+                const delCard = card.cloneNode(true);
+                const insCard = card.cloneNode(true);
+
+                const ins = document.createElement('ins');
+                const del = document.createElement('del');
+
+                delCard.querySelectorAll('ins').forEach((el) => {
+                    el.remove();
+                });
+                insCard.querySelectorAll('del').forEach((el) => {
+                    el.remove();
+                });
+                delCard.querySelectorAll('del').forEach((el) => {
+                    el.parentNode.appendChild(el.firstChild);
+                    el.remove();
+                });
+                insCard.querySelectorAll('ins').forEach((el) => {
+                    el.parentNode.appendChild(el.firstChild);
+                    el.remove();
+                });
+
+                ins.appendChild(insCard);
+                del.appendChild(delCard);
+
+                card.parentNode.appendChild(del);
+                card.parentNode.appendChild(ins);
+                card.remove();
+            }
+        }
+    }
+
+    updateDiff() {
+        if (this.comparisonEditor && this.selectedEditor) {
+            let comparisonState = this.comparisonEditor.editorInstance.parseEditorState(this.comparisonRevision.lexical);
             let selectedState = this.selectedEditor.editorInstance.parseEditorState(this.selectedRevision.lexical);
 
+            this.comparisonEditor.editorInstance.setEditorState(comparisonState);
             this.selectedEditor.editorInstance.setEditorState(selectedState);
         }
 
+        let previous = document.querySelector('.gh-post-history-hidden-lexical.previous');
         let current = document.querySelector('.gh-post-history-hidden-lexical.current');
 
+        let previousDone = false;
         let currentDone = false;
 
-        let updateIfDone = () => {
-            if (currentDone) {
+        let updateIfBothDone = () => {
+            if (previousDone && currentDone) {
+                this.diffHtml = this.calculateHTMLDiff(this.stripInitialPlaceholder(previous.innerHTML), this.stripInitialPlaceholder(current.innerHTML));
                 this.selectedHTML = this.stripInitialPlaceholder(current.innerHTML);
             }
         };
+
+        checkFinishedRendering(previous, () => {
+            previous.querySelectorAll('[contenteditable]').forEach((el) => {
+                el.setAttribute('contenteditable', false);
+            });
+            previousDone = true;
+            updateIfBothDone();
+        });
 
         checkFinishedRendering(current, () => {
             current.querySelectorAll('[contenteditable]').forEach((el) => {
                 el.setAttribute('contenteditable', false);
             });
             currentDone = true;
-            updateIfDone();
+            updateIfBothDone();
         });
     }
 }

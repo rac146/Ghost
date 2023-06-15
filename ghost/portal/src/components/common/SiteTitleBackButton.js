@@ -17,7 +17,6 @@ export default class SiteTitleBackButton extends React.Component {
                             this.context.onAction('closePopup');
                         }
                     }}>
-                    {/* eslint-disable-next-line i18next/no-literal-string */}
                     <span>&larr; </span> {t('Back')}
                 </button>
             </>

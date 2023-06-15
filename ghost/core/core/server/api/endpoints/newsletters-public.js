@@ -4,9 +4,6 @@ module.exports = {
     docName: 'newsletters',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'filter',
             'fields',

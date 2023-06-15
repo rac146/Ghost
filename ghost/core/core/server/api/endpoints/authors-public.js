@@ -24,9 +24,6 @@ module.exports = {
     docName: 'authors',
 
     browse: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',
@@ -53,9 +50,6 @@ module.exports = {
     },
 
     read: {
-        headers: {
-            cacheInvalidate: false
-        },
         options: [
             'include',
             'filter',

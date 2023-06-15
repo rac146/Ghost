@@ -88,7 +88,7 @@ export default class extends Component {
             }
 
             if (!sub.id && sub.tier?.expiry_at) {
-                data.compExpiry = moment(sub.tier.expiry_at).utc().format('D MMM YYYY');
+                data.compExpiry = moment(sub.tier.expiry_at).format('D MMM YYYY');
             }
             return data;
         });
@@ -231,7 +231,7 @@ export default class extends Component {
 
     @task({drop: true})
     *fetchTiers() {
-        this.tiersList = yield this.store.query('tier', {filter: 'type:paid+active:true', include: 'monthly_price,yearly_price'});
+        this.tiersList = yield this.store.query('tier', {filter: 'type:paid+active:true', include: 'one_time_price,monthly_price,yearly_price'});
     }
 
     @task({drop: true})

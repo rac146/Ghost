@@ -1,11 +1,11 @@
-const AccountFooter = ({onClose, handleSignout, supportAddress = '', t}) => {
+const AccountFooter = ({onClose, handleSignout, supportAddress = ''}) => {
     const supportAddressMail = `mailto:${supportAddress}`;
     return (
         <footer className='gh-portal-account-footer'>
             <ul className='gh-portal-account-footermenu'>
                 <li>
                     <button data-test-button="footer-signout" className='gh-portal-btn' name='logout' aria-label='logout' onClick={e => handleSignout(e)}>
-                        {t('Sign out')}
+                        Sign out
                     </button>
                 </li>
             </ul>
@@ -14,7 +14,7 @@ const AccountFooter = ({onClose, handleSignout, supportAddress = '', t}) => {
                     <li>
                         <a data-test-link="footer-support" className='gh-portal-btn gh-portal-btn-branded' href={supportAddressMail} onClick={() => {
                             supportAddressMail && window.open(supportAddressMail);
-                        }}>{t('Contact support')}</a>
+                        }}>Contact support</a>
                     </li>
                 </ul>
             </div>

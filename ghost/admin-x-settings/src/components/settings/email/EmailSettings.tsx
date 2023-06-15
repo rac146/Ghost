@@ -5,7 +5,7 @@ import SettingSection from '../../../admin-x-ds/settings/SettingSection';
 
 const EmailSettings: React.FC = () => {
     return (
-        <SettingSection title='Email newsletters'>
+        <SettingSection title='Email'>
             <DefaultRecipients />
             <MailGun />
         </SettingSection>

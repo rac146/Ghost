@@ -1,13 +1,9 @@
-import MultiSelect, {MultiSelectOption} from '../../../admin-x-ds/global/form/MultiSelect';
-import React, {useContext, useEffect, useState} from 'react';
-import Select from '../../../admin-x-ds/global/form/Select';
+import Dropdown from '../../../admin-x-ds/global/Dropdown';
+import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {GroupBase, MultiValue} from 'react-select';
-import {Label, Offer, Tier} from '../../../types/api';
-import {ServicesContext} from '../../providers/ServiceProvider';
-import {getOptionLabel, getSettingValues} from '../../../utils/helpers';
+import {getOptionLabel} from '../../../utils/helpers';
 
 type RefipientValueArgs = {
     defaultEmailRecipients: string;
@@ -31,16 +27,6 @@ const RECIPIENT_FILTER_OPTIONS = [{
     value: 'none'
 }];
 
-const SIMPLE_SEGMENT_OPTIONS: MultiSelectOption[] = [{
-    label: 'Free members',
-    value: 'status:free',
-    color: 'green'
-}, {
-    label: 'Paid members',
-    value: 'status:-free',
-    color: 'pink'
-}];
-
 function getDefaultRecipientValue({
     defaultEmailRecipients,
     defaultEmailRecipientsFilter
@@ -62,42 +48,17 @@ function getDefaultRecipientValue({
 
 const DefaultRecipients: React.FC = () => {
     const {
-        localSettings,
-        isEditing,
-        saveState,
+        currentState,
         handleSave,
         handleCancel,
         updateSetting,
-        handleEditingChange
+        getSettingValues,
+        handleStateChange
     } = useSettingGroup();
 
-    const [defaultEmailRecipients, defaultEmailRecipientsFilter] = getSettingValues(localSettings, [
+    const [defaultEmailRecipients, defaultEmailRecipientsFilter] = getSettingValues([
         'editor_default_email_recipients', 'editor_default_email_recipients_filter'
     ]) as [string, string|null];
-
-    const [selectedOption, setSelectedOption] = useState(getDefaultRecipientValue({
-        defaultEmailRecipients,
-        defaultEmailRecipientsFilter
-    }));
-
-    const {api} = useContext(ServicesContext);
-    const [tiers, setTiers] = useState<Tier[]>([]);
-    const [labels, setLabels] = useState<Label[]>([]);
-    const [offers, setOffers] = useState<Offer[]>([]);
-
-    useEffect(() => {
-        api.tiers.browse().then((response) => {
-            setTiers(response.tiers);
-        });
-
-        api.labels.browse().then((response) => {
-            setLabels(response.labels);
-        });
-
-        api.offers.browse().then((response) => {
-            setOffers(response.offers);
-        });
-    }, [api]);
 
     const setDefaultRecipientValue = (value: string) => {
         if (['visibility', 'disabled'].includes(value)) {
@@ -118,41 +79,12 @@ const DefaultRecipients: React.FC = () => {
         if (value === 'none') {
             updateSetting('editor_default_email_recipients_filter', null);
         }
-
-        setSelectedOption(value);
     };
 
-    const segmentOptionGroups: GroupBase<MultiSelectOption>[] = [
-        {
-            options: SIMPLE_SEGMENT_OPTIONS
-        },
-        {
-            label: 'Active Tiers',
-            options: tiers.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name, color: 'black'}))
-        },
-        {
-            label: 'Archived Tiers',
-            options: tiers.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name, color: 'black'}))
-        },
-        {
-            label: 'Labels',
-            options: labels.map(label => ({value: `label:${label.slug}`, label: label.name, color: 'grey'}))
-        },
-        {
-            label: 'Offers',
-            options: offers.map(offer => ({value: `offer_redemptions:${offer.id}`, label: offer.name, color: 'black'}))
-        }
-    ];
-
-    const filters = defaultEmailRecipientsFilter?.split(',') || [];
-    const defaultSelectedSegments = segmentOptionGroups
-        .flatMap(({options}) => options)
-        .filter(({value}) => filters.includes(value));
-
-    const setSelectedSegments = (selected: MultiValue<MultiSelectOption>) => {
-        const selectedGroups = selected?.map(({value}) => value).join(',');
-        updateSetting('editor_default_email_recipients_filter', selectedGroups);
-    };
+    const emailRecipientValue = getDefaultRecipientValue({
+        defaultEmailRecipients,
+        defaultEmailRecipientsFilter
+    });
 
     const values = (
         <SettingGroupContent
@@ -160,7 +92,7 @@ const DefaultRecipients: React.FC = () => {
                 {
                     heading: 'Default Newsletter recipients',
                     key: 'default-recipients',
-                    value: getOptionLabel(RECIPIENT_FILTER_OPTIONS, selectedOption)
+                    value: getOptionLabel(RECIPIENT_FILTER_OPTIONS, emailRecipientValue)
                 }
             ]}
         />
@@ -168,40 +100,28 @@ const DefaultRecipients: React.FC = () => {
 
     const form = (
         <SettingGroupContent columns={1}>
-            <Select
-                defaultSelectedOption={selectedOption}
+            <Dropdown
+                defaultSelectedOption={emailRecipientValue}
                 hint='Who should be able to subscribe to your site?'
                 options={RECIPIENT_FILTER_OPTIONS}
-                title="Default Newsletter recipients"
+                title="Subscription access"
                 onSelect={(value) => {
                     setDefaultRecipientValue(value);
                 }}
             />
-            {(selectedOption === 'segment') && (
-                <MultiSelect
-                    defaultValues={defaultSelectedSegments}
-                    options={segmentOptionGroups.filter(group => group.options.length > 0)}
-                    title='Select tiers'
-                    clearBg
-                    onChange={setSelectedSegments}
-                />
-            )}
         </SettingGroupContent>
     );
 
     return (
         <SettingGroup
             description='When you publish new content, who do you usually want to send it to?'
-            isEditing={isEditing}
-            navid='default-recipients'
-            saveState={saveState}
-            testId='default-recipients'
+            state={currentState}
             title='Default recipients'
             onCancel={handleCancel}
-            onEditingChange={handleEditingChange}
             onSave={handleSave}
+            onStateChange={handleStateChange}
         >
-            {isEditing ? form : values}
+            {currentState === 'view' ? values : form}
         </SettingGroup>
     );
 };
