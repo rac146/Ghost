@@ -32,6 +32,10 @@ const AccountWelcome = () => {
             return null;
         }
 
+        if(subscription?.plan.interval == 'oneTime') {
+            return null;
+        }
+
         if (subscriptionHasFreeTrial({sub: subscription})) {
             const trialEnd = getDateString(subscription.trial_end_at);
             return (

@@ -280,7 +280,18 @@ export default class OfferPage extends React.Component {
             return null;
         }
         const product = getProductFromId({site, productId: offer.tier.id});
-        const price = offer.cadence === 'month' ? product.monthlyPrice : product.yearlyPrice;
+
+        let price;
+        if(offer.cadence === 'month') {
+            price = product.monthlyPrice;
+        } else if(offer.cadence === 'year') {
+            price = product.yearlyPrice;
+        } else if(offer.cadence === 'oneTime') {
+            price = product.oneTimePrice;
+        } else {
+            price = product.yearlyPrice;
+        }
+
         this.setState((state) => {
             return {
                 errors: this.getFormErrors(state)
@@ -479,7 +490,17 @@ export default class OfferPage extends React.Component {
     }
 
     getOriginalPrice({offer, product}) {
-        const price = offer.cadence === 'month' ? product.monthlyPrice : product.yearlyPrice;
+        let price;
+        if(offer.cadence === 'month') {
+            price = product.monthlyPrice;
+        } else if(offer.cadence === 'year') {
+            price = product.yearlyPrice;
+        } else if(offer.cadence === 'oneTime') {
+            price = product.oneTimePrice;
+        } else {
+            price = product.yearlyPrice;
+        }
+
         const originalAmount = this.renderRoundedPrice(price.amount / 100);
         return `${getCurrencySymbol(price.currency)}${originalAmount}/${offer.cadence}`;
     }
@@ -569,13 +590,24 @@ export default class OfferPage extends React.Component {
     renderProductLabel({product, offer}) {
         const {site, t} = this.context;
 
+        let text;
+        if(offer.cadence === 'month') {
+            text = 'Monthly'
+        } else if(offer.cadence === 'year') {
+            text = 'Yearly'
+        } else if(offer.cadence === 'oneTime') {
+            text = 'One-Time'
+        } else {
+            text = 'Yearly'
+        }
+
         if (hasMultipleProductsFeature({site})) {
             return (
-                <h4 className="gh-portal-plan-name">{product.name} - {(offer.cadence === 'month' ? t('Monthly') : t('Yearly'))}</h4>
+                <h4 className="gh-portal-plan-name">{product.name} - {t(text)}</h4>
             );
         }
         return (
-            <h4 className="gh-portal-plan-name">{(offer.cadence === 'month' ? t('Monthly') : t('Yearly'))}</h4>
+            <h4 className="gh-portal-plan-name">{t(text)}</h4>
         );
     }
 
@@ -655,7 +687,18 @@ export default class OfferPage extends React.Component {
         if (!product) {
             return null;
         }
-        const price = offer.cadence === 'month' ? product.monthlyPrice : product.yearlyPrice;
+
+        let price;
+        if(offer.cadence === 'month') {
+            price = product.monthlyPrice;
+        } else if(offer.cadence === 'year') {
+            price = product.yearlyPrice;
+        } else if(offer.cadence === 'oneTime') {
+            price = product.oneTimePrice;
+        } else {
+            price = product.yearlyPrice;
+        }
+        
         const updatedPrice = this.getUpdatedPrice({offer, product});
         const benefits = product.benefits || [];
 

@@ -4,7 +4,6 @@ const StripeMigrations = require('./StripeMigrations');
 const WebhookController = require('./WebhookController');
 const DomainEvents = require('@tryghost/domain-events');
 const {StripeLiveEnabledEvent, StripeLiveDisabledEvent} = require('./events');
-
 module.exports = class StripeService {
     constructor({
         membersService,
@@ -58,7 +57,8 @@ module.exports = class StripeService {
     async disconnect() {
         await this.models.Product.forge().query().update({
             monthly_price_id: null,
-            yearly_price_id: null
+            yearly_price_id: null,
+            one_time_price_id: null
         });
         await this.models.StripePrice.forge().query().del();
         await this.models.StripeProduct.forge().query().del();
