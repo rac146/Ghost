@@ -1,0 +1,7 @@
+import * as L from "react";
+const t = (e) => /* @__PURE__ */ L.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", strokeWidth: "1.5px", ...e }, /* @__PURE__ */ L.createElement("g", null, /* @__PURE__ */ L.createElement("path", { d: "M21.92,17l1.32-10a.75.75,0,0,0-1.08-.78L17.88,9.56a.74.74,0,0,1-1.09-.16L12.56,3.22a.74.74,0,0,0-1.12,0L7.21,9.4a.74.74,0,0,1-1.09.16L1.84,6.3a.75.75,0,0,0-1.08.78L2.08,17Z", fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" }), /* @__PURE__ */ L.createElement("line", { x1: 2.25, y1: 21.03, x2: 21.75, y2: 21.03, fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round" }))), n = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjVweCI+PGc+PHBhdGggZD0iTTIxLjkyLDE3bDEuMzItMTBhLjc1Ljc1LDAsMCwwLTEuMDgtLjc4TDE3Ljg4LDkuNTZhLjc0Ljc0LDAsMCwxLTEuMDktLjE2TDEyLjU2LDMuMjJhLjc0Ljc0LDAsMCwwLTEuMTIsMEw3LjIxLDkuNGEuNzQuNzQsMCwwLDEtMS4wOS4xNkwxLjg0LDYuM2EuNzUuNzUsMCwwLDAtMS4wOC43OEwyLjA4LDE3WiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PC9wYXRoPjxsaW5lIHgxPSIyLjI1IiB5MT0iMjEuMDMiIHgyPSIyMS43NSIgeTI9IjIxLjAzIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48L2xpbmU+PC9nPjwvc3ZnPg==";
+export {
+  t as ReactComponent,
+  n as default
+};
+//# sourceMappingURL=crown-61273c7c.mjs.map

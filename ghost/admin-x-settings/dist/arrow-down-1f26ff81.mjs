@@ -1,0 +1,7 @@
+import * as e from "react";
+const i = (n) => /* @__PURE__ */ e.createElement("svg", { id: "Regular", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", ...n }, /* @__PURE__ */ e.createElement("defs", null), /* @__PURE__ */ e.createElement("title", null, "arrow-down"), /* @__PURE__ */ e.createElement("line", { x1: 12, y1: 0.75, x2: 12, y2: 23.25, fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "1.5px" }), /* @__PURE__ */ e.createElement("polyline", { points: "1.5 12.75 12 23.25 22.5 12.75", fillRule: "evenodd", fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "1.5px" })), l = "data:image/svg+xml;base64,PHN2ZyBpZD0iUmVndWxhciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxkZWZzPjwvZGVmcz48dGl0bGU+YXJyb3ctZG93bjwvdGl0bGU+PGxpbmUgeDE9IjEyIiB5MT0iMC43NSIgeDI9IjEyIiB5Mj0iMjMuMjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41cHgiPjwvbGluZT48cG9seWxpbmUgcG9pbnRzPSIxLjUgMTIuNzUgMTIgMjMuMjUgMjIuNSAxMi43NSIgZmlsbC1ydWxlPSJldmVub2RkIiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNXB4Ij48L3BvbHlsaW5lPjwvc3ZnPg==";
+export {
+  i as ReactComponent,
+  l as default
+};
+//# sourceMappingURL=arrow-down-1f26ff81.mjs.map
