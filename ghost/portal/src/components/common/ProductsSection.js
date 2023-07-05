@@ -1035,11 +1035,13 @@ export function ChangeProductSection({onPlanSelect, selectedPlan, products, type
     // const selectedPrice = getSelectedPrice({products, selectedInterval, selectedProduct});
     const activeInterval = getActiveInterval({portalPlans, selectedInterval});
 
+    //console.log(products, portalPlans)
+
     useEffect(() => {
         setSelectedProduct(defaultProductId);
     }, [defaultProductId]);
 
-    if (!portalPlans.includes('monthly') || !portalPlans.includes('yearly') || !portalPlans.includes('oneTime')) {
+    if (!portalPlans.includes('monthly') && !portalPlans.includes('yearly') && !portalPlans.includes('oneTime')) {
         return null;
     }
 
@@ -1054,6 +1056,8 @@ export function ChangeProductSection({onPlanSelect, selectedPlan, products, type
     if (type === 'changePlan') {
         className += ' gh-portal-upgrade-product gh-portal-change-plan';
     }
+
+    console.log('testing!!')
 
     return (
         <ProductsContext.Provider value={{

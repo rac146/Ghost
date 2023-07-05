@@ -225,6 +225,8 @@ const ChangePlanSection = ({plans, selectedPlan, onPlanSelect, onCancelSubscript
 function PlansOrProductSection({showLabel, plans, selectedPlan, onPlanSelect, onPlanCheckout, changePlan = false}) {
     const {site, member} = useContext(AppContext);
     const products = getUpgradeProducts({site, member});
+
+    console.log(products);
     return (
         <MultipleProductsPlansSection
             products={products}

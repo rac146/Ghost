@@ -199,7 +199,7 @@
     color: var(--darkgrey);
 }
 
-.gh-tier-card-price:first-of-type {
+.gh-tier-card-right-border {
     border-right: 1px solid var(--whitegrey);
 }
 

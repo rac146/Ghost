@@ -39,14 +39,14 @@
         <div class="gh-tier-card-block price-block">
             <div class="gh-tier-price-container">
                 <div class="gh-tier-price-cards">
-                    <div class="gh-tier-card-price" data-test-monthly-price>
+                    <div class="gh-tier-card-price gh-tier-card-right-border" data-test-monthly-price>
                         <div class="flex items-start">
                             <span class="currency">{{currency-symbol this.tierCurrency}}</span>
                             <span class="amount" data-test-amount-monthly-price>{{gh-price-amount @tier.monthlyPrice}}</span>
                         </div>
                         <div class="period">Monthly</div>
                     </div>
-                    <div class="gh-tier-card-price" data-test-yearly-price>
+                    <div class="gh-tier-card-price gh-tier-card-right-border" data-test-yearly-price>
                         <div class="flex items-start">
                             <span class="currency">{{currency-symbol this.tierCurrency}}</span>
                             <span class="amount" data-test-amount-yearly-price>{{gh-price-amount @tier.yearlyPrice}}</span>

@@ -88,9 +88,9 @@ const PaidAccountActions = () => {
         if (hideUpgrade || hasOnlyFreePlan({site})) {
             return null;
         }
-        if(subscription?.plan.interval == 'oneTime') {
-            return null;
-        }
+        //if(subscription?.plan.interval == 'oneTime') {
+        //    return null;
+       // }
         return (
             <button
                 className='gh-portal-btn gh-portal-btn-list' onClick={e => openUpdatePlan(e)}

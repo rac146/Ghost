@@ -101,8 +101,13 @@ export function getUpgradeProducts({site, member}) {
     const activePrice = getMemberActivePrice({member});
     const activePriceCurrency = activePrice?.currency;
     const availableProducts = getAvailableProducts({site});
+
+    //console.log(activePrice);
+    
+    //console.log(availableProducts);
+
     if (!activePrice?.id) {
-        return availableProducts;
+   //     return availableProducts;
     }
     return availableProducts.filter((product) => {
         return (isSameCurrency(getProductCurrency({product}), activePriceCurrency));
