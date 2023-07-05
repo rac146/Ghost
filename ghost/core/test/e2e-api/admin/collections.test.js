@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('assert/strict');
 const {
     agentProvider,
     fixtureManager,
@@ -12,7 +12,9 @@ const {
     anyLocationFor,
     anyObjectId,
     anyISODateTime,
+    anyISODateTimeWithTZ,
     anyNumber,
+    anyUuid,
     anyString
 } = matchers;
 
@@ -23,7 +25,11 @@ const matchCollection = {
 };
 
 const matchCollectionPost = {
-    id: anyObjectId
+    id: anyObjectId,
+    created_at: anyISODateTimeWithTZ,
+    updated_at: anyISODateTimeWithTZ,
+    published_at: anyISODateTimeWithTZ,
+    uuid: anyUuid
 };
 
 /**
@@ -47,6 +53,7 @@ describe('Collections API', function () {
     let agent;
 
     before(async function () {
+        mockManager.mockLabsEnabled('collections');
         agent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init('users', 'posts');
         await agent.loginAsOwner();
@@ -300,7 +307,7 @@ describe('Collections API', function () {
     describe('Automatic Collection Filtering', function () {
         it('Creates an automatic Collection with a featured filter', async function () {
             const collection = {
-                title: 'Test Collection',
+                title: 'Test Featured Collection',
                 description: 'Test Collection Description',
                 type: 'automatic',
                 filter: 'featured:true'
@@ -345,41 +352,6 @@ describe('Collections API', function () {
                 .matchBodySnapshot({
                     collections: [buildMatcher(7)]
                 });
-        });
-
-        it('Creates an automatic Collection with a relational tag filter', async function () {
-            const collection = {
-                title: 'Test Collection with relational tag filter',
-                description: 'Test Collection Description with relational tag filter',
-                type: 'automatic',
-                filter: 'tag:kitchen-sink'
-            };
-
-            const automaticTagCollection = await agent
-                .post('/collections/')
-                .body({
-                    collections: [collection]
-                })
-                .expectStatus(201)
-                .matchHeaderSnapshot({
-                    'content-version': anyContentVersion,
-                    etag: anyEtag,
-                    location: anyLocationFor('collections')
-                })
-                .matchBodySnapshot({
-                    collections: [buildMatcher(2)]
-                });
-
-            const kitchenSinkTagPosts = await agent
-                .get('/posts/?filter=tag:kitchen-sink');
-
-            assert.equal(automaticTagCollection.body.collections[0].posts.length, 2);
-            assert.equal(kitchenSinkTagPosts.body.posts.length, 2);
-
-            const collectionPostIds = automaticTagCollection.body.collections[0].posts.map(p => p.id);
-            const tagFilteredPosts = kitchenSinkTagPosts.body.posts.map(p => p.id);
-
-            assert.deepEqual(collectionPostIds, tagFilteredPosts);
         });
     });
 });

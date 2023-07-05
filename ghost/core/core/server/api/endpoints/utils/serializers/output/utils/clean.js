@@ -78,6 +78,7 @@ const author = (attrs, frame) => {
 const post = (attrs, frame) => {
     const columns = frame && frame.options && frame.options.columns || null;
     const fields = frame && frame.original && frame.original.query && frame.original.query.fields || null;
+
     if (localUtils.isContentAPI(frame)) {
         delete attrs.status;
         delete attrs.email_only;
@@ -123,6 +124,10 @@ const post = (attrs, frame) => {
 
     if (!attrs.authors) {
         delete attrs.primary_author;
+    }
+
+    if (attrs.type !== 'page') {
+        delete attrs.hide_title_and_feature_image;
     }
 
     delete attrs.locale;

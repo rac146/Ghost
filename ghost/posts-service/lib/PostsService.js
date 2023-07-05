@@ -3,7 +3,7 @@ const {BadRequestError} = require('@tryghost/errors');
 const tpl = require('@tryghost/tpl');
 const errors = require('@tryghost/errors');
 const ObjectId = require('bson-objectid').default;
-const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 
 const messages = {
     invalidVisibilityFilter: 'Invalid visibility filter.',
@@ -12,7 +12,8 @@ const messages = {
     invalidTags: 'Invalid tags value.',
     invalidEmailSegment: 'The email segment parameter doesn\'t contain a valid filter',
     unsupportedBulkAction: 'Unsupported bulk action',
-    postNotFound: 'Post not found.'
+    postNotFound: 'Post not found.',
+    collectionNotFound: 'Collection not found.'
 };
 
 class PostsService {
@@ -23,7 +24,38 @@ class PostsService {
         this.stats = stats;
         this.emailService = emailService;
         this.postsExporter = postsExporter;
+        /** @type {import('@tryghost/collections').CollectionsService} */
         this.collectionsService = collectionsService;
+    }
+
+    /**
+     *
+     * @param {Object} options - frame options
+     * @returns {Promise<Object>}
+     */
+    async browsePosts(options) {
+        let posts;
+        if (this.isSet('collections') && options.collection) {
+            let collection = await this.collectionsService.getById(options.collection);
+
+            if (!collection) {
+                collection = await this.collectionsService.getBySlug(options.collection);
+            }
+
+            if (!collection) {
+                throw new errors.NotFoundError({
+                    message: tpl(messages.collectionNotFound)
+                });
+            }
+
+            const postIds = collection.posts;
+            options.filter = `id:[${postIds.join(',')}]+type:post`;
+            posts = await this.models.Post.findPage(options);
+        } else {
+            posts = await this.models.Post.findPage(options);
+        }
+
+        return posts;
     }
 
     async readPost(frame) {
@@ -44,7 +76,18 @@ class PostsService {
         return dto;
     }
 
-    async editPost(frame) {
+    /**
+     * @typedef {'published_updated' | 'scheduled_updated' | 'draft_updated' | 'unpublished'} EventString
+     */
+
+    /**
+     *
+     * @param {any} frame
+     * @param {object} [options]
+     * @param {(event: EventString, dto: any) => Promise<void> | void} [options.eventHandler] - Called before the editPost method resolves with an event string
+     * @returns
+     */
+    async editPost(frame, options) {
         // Make sure the newsletter is matching an active newsletter
         // Note that this option is simply ignored if the post isn't published or scheduled
         if (frame.options.newsletter && frame.options.email_segment) {
@@ -58,6 +101,49 @@ class PostsService {
                         context: err.message
                     }));
                 }
+            }
+        }
+
+        if (this.isSet('collections') && frame.data.posts[0].collections) {
+            const existingCollections = await this.collectionsService.getCollectionsForPost(frame.options.id);
+            for (const collection of frame.data.posts[0].collections) {
+                let collectionId = null;
+                if (typeof collection === 'string') {
+                    collectionId = collection;
+                }
+                if (typeof collection?.id === 'string') {
+                    collectionId = collection.id;
+                }
+                if (!collectionId) {
+                    continue;
+                }
+                const existingCollection = existingCollections.find(c => c.id === collectionId);
+                if (existingCollection) {
+                    continue;
+                }
+                const found = await this.collectionsService.getById(collectionId);
+                if (!found) {
+                    continue;
+                }
+                if (found.type !== 'manual') {
+                    continue;
+                }
+                await this.collectionsService.addPostToCollection(collectionId, {
+                    id: frame.options.id,
+                    featured: frame.data.posts[0].featured,
+                    published_at: frame.data.posts[0].published_at
+                });
+            }
+            for (const existingCollection of existingCollections) {
+                if (frame.data.posts[0].collections.find((item) => {
+                    if (typeof item === 'string') {
+                        return item === existingCollection.id;
+                    }
+                    return item.id === existingCollection.id;
+                })) {
+                    continue;
+                }
+                await this.collectionsService.removePostFromCollection(existingCollection.id, frame.options.id);
             }
         }
 
@@ -82,7 +168,40 @@ class PostsService {
             }
         }
 
-        return model;
+        const dto = model.toJSON(frame.options);
+
+        if (this.isSet('collections')) {
+            if (frame?.original?.query?.include?.includes('collections') || frame.data.posts[0].collections) {
+                dto.collections = await this.collectionsService.getCollectionsForPost(model.id);
+            }
+        }
+
+        if (typeof options?.eventHandler === 'function') {
+            await options.eventHandler(this.getChanges(model), dto);
+        }
+
+        return dto;
+    }
+    /**
+     * @param {any} model
+     * @returns {EventString}
+     */
+    getChanges(model) {
+        if (model.get('status') === 'published' && model.wasChanged()) {
+            return 'published_updated';
+        }
+
+        if (model.get('status') === 'draft' && model.previous('status') === 'published') {
+            return 'unpublished';
+        }
+
+        if (model.get('status') === 'draft' && model.previous('status') !== 'published') {
+            return 'draft_updated';
+        }
+
+        if (model.get('status') === 'scheduled' && model.wasChanged()) {
+            return 'scheduled_updated';
+        }
     }
 
     #mergeFilters(...filters) {
@@ -393,21 +512,24 @@ class PostsService {
             status: 'all'
         }, frame.options);
 
-        const newPostData = omit(
+        const newPostData = pick(
             existingPost.attributes,
             [
-                'id',
-                'uuid',
-                'slug',
-                'comment_id',
-                'created_at',
-                'created_by',
-                'updated_at',
-                'updated_by',
-                'published_at',
-                'published_by',
-                'canonical_url',
-                'count__clicks'
+                'title',
+                'mobiledoc',
+                'lexical',
+                'html',
+                'plaintext',
+                'feature_image',
+                'featured',
+                'type',
+                'locale',
+                'visibility',
+                'email_recipient_filter',
+                'custom_excerpt',
+                'codeinjection_head',
+                'codeinjection_foot',
+                'custom_template'
             ]
         );
 
@@ -421,11 +543,21 @@ class PostsService {
         const existingPostMeta = existingPost.related('posts_meta');
 
         if (existingPostMeta.isNew() === false) {
-            newPostData.posts_meta = omit(
+            newPostData.posts_meta = pick(
                 existingPostMeta.attributes,
                 [
-                    'id',
-                    'post_id'
+                    'og_image',
+                    'og_title',
+                    'og_description',
+                    'twitter_image',
+                    'twitter_title',
+                    'twitter_description',
+                    'meta_title',
+                    'meta_description',
+                    'frontmatter',
+                    'feature_image_alt',
+                    'feature_image_caption',
+                    'hide_title_and_feature_image'
                 ]
             );
         }
