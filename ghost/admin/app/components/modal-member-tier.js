@@ -115,16 +115,16 @@ export default class ModalMemberTier extends ModalComponent {
     *addTier() {
         const url = `${this.ghostPaths.url.api(`members/${this.member.get('id')}`)}?include=tiers`;
 
-        // Cancel existing active subscriptions for member
-        for (let i = 0; i < this.activeSubscriptions.length; i++) {
-            const subscription = this.activeSubscriptions[i];
-            const cancelUrl = this.ghostPaths.url.api(`members/${this.member.get('id')}/subscriptions/${subscription.id}`);
-            yield this.ajax.put(cancelUrl, {
-                data: {
-                    status: 'canceled'
-                }
-            });
-        }
+        // // Cancel existing active subscriptions for member
+        // for (let i = 0; i < this.activeSubscriptions.length; i++) {
+        //     const subscription = this.activeSubscriptions[i];
+        //     const cancelUrl = this.ghostPaths.url.api(`members/${this.member.get('id')}/subscriptions/${subscription.id}`);
+        //     yield this.ajax.put(cancelUrl, {
+        //         data: {
+        //             status: 'canceled'
+        //         }
+        //     });
+        // }
 
         let expiryAt = null;
 

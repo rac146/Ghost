@@ -33,9 +33,9 @@ export default class extends Component {
             return false;
         }
 
-        if (this.member.get('tiers')?.length > 0) {
-            return false;
-        }
+       // if (this.member.get('tiers')?.length > 0) {
+        //    return false;
+      //  }
 
         // complimentary subscriptions are assigned to tiers so it only
         // makes sense to show the "add complimentary" buttons when there's a

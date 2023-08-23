@@ -521,24 +521,24 @@ module.exports = class MemberRepository {
 
                 const exisitingSubscriptions = initialMember.related('stripeSubscriptions')?.models ?? [];
 
-                if (productsToRemove.length > 0) {
-                    // Only allow to delete comped products without a subscription attached to them
-                    // Other products should be removed by canceling them via the related stripe subscription
-                    const dontAllowToRemoveProductsIds = exisitingSubscriptions
-                        .filter(sub => this.isActiveSubscriptionStatus(sub.get('status')))
-                        .map(sub => sub.related('stripePrice')?.related('stripeProduct')?.get('product_id'));
+                // if (productsToRemove.length > 0) {
+                //     // Only allow to delete comped products without a subscription attached to them
+                //     // Other products should be removed by canceling them via the related stripe subscription
+                //     const dontAllowToRemoveProductsIds = exisitingSubscriptions
+                //         .filter(sub => this.isActiveSubscriptionStatus(sub.get('status')))
+                //         .map(sub => sub.related('stripePrice')?.related('stripeProduct')?.get('product_id'));
 
-                    for (const deleteId of productsToRemove) {
-                        if (dontAllowToRemoveProductsIds.includes(deleteId)) {
-                            throw new errors.BadRequestError({message: tpl(messages.deleteProductWithActiveSubscription)});
-                        }
-                    }
+                //     for (const deleteId of productsToRemove) {
+                //         if (dontAllowToRemoveProductsIds.includes(deleteId)) {
+                //             throw new errors.BadRequestError({message: tpl(messages.deleteProductWithActiveSubscription)});
+                //         }
+                //     }
 
-                    if (incomingProductIds.length === 0) {
-                        // CASE: We are removing all (comped) products from a member & there were no active subscriptions - the member is "free"
-                        memberStatusData.status = 'free';
-                    }
-                }
+                //     if (incomingProductIds.length === 0) {
+                //         // CASE: We are removing all (comped) products from a member & there were no active subscriptions - the member is "free"
+                //         memberStatusData.status = 'free';
+                //     }
+                // }
 
                 if (productsToAdd.length > 0) {
                     // Don't allow to add complimentary subscriptions (= creating a new product) when the member already has an active
@@ -547,9 +547,9 @@ module.exports = class MemberRepository {
                         return this.isActiveSubscriptionStatus(subscription.get('status'));
                     });
 
-                    if (existingActiveSubscriptions.length) {
-                        throw new errors.BadRequestError({message: tpl(messages.addProductWithActiveSubscription)});
-                    }
+                    // if (existingActiveSubscriptions.length) {
+                    //     throw new errors.BadRequestError({message: tpl(messages.addProductWithActiveSubscription)});
+                    // }
 
                     // CASE: We are changing products & there were not active stripe subscriptions - the member is "comped"
                     memberStatusData.status = 'comped';
