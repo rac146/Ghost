@@ -172,42 +172,64 @@ describe('Collection', function () {
         });
     });
 
-    describe('edit', function () {
-        it('Can edit Collection values', async function () {
-            const collection = await Collection.create({
-                slug: 'test-collection',
-                title: 'Testing edits',
-                type: 'automatic',
-                filter: 'featured:true'
-            });
-
-            assert.equal(collection.title, 'Testing edits');
-
-            await collection.edit({
-                title: 'Edited title',
-                slug: 'edited-slug'
-            }, uniqueChecker);
-
-            assert.equal(collection.title, 'Edited title');
-            assert.equal(collection.slug, 'edited-slug');
+    it('Can edit Collection values', async function () {
+        const collection = await Collection.create({
+            slug: 'test-collection',
+            title: 'Testing edits',
+            type: 'automatic',
+            filter: 'featured:true'
         });
 
-        it('Throws when the collection filter is empty', async function () {
-            const collection = await Collection.create({
-                title: 'Testing edits',
-                type: 'automatic',
-                filter: 'featured:true'
-            });
+        assert.equal(collection.title, 'Testing edits');
 
-            assert.rejects(async () => {
-                await collection.edit({
-                    filter: null
-                }, uniqueChecker);
-            }, (err: any) => {
-                assert.equal(err.message, 'Invalid filter provided for automatic Collection', 'Error message should match');
-                assert.equal(err.context, 'Automatic type of collection should always have a filter value', 'Error message should match');
-                return true;
-            });
+        collection.title = 'Edited title';
+        await collection.setSlug('edited-slug', uniqueChecker);
+
+        assert.equal(collection.title, 'Edited title');
+        assert.equal(collection.slug, 'edited-slug');
+    });
+
+    it('Throws when the collection filter is empty', async function () {
+        const collection = await Collection.create({
+            title: 'Testing edits',
+            type: 'automatic',
+            filter: 'featured:true'
+        });
+
+        assert.throws(() => {
+            collection.filter = null;
+        }, (err: any) => {
+            assert.equal(err.message, 'Invalid filter provided for automatic Collection', 'Error message should match');
+            assert.equal(err.context, 'Automatic type of collection should always have a filter value', 'Error message should match');
+            return true;
+        });
+    });
+
+    it('Does not throw when collection filter is empty for automatic "latest" collection', async function (){
+        const collection = await Collection.create({
+            title: 'Latest',
+            slug: 'latest',
+            type: 'automatic',
+            filter: ''
+        });
+
+        collection.filter = '';
+    });
+
+    it('throws when trying to set filter on a manual collection', async function () {
+        const collection = await Collection.create({
+            title: 'Testing Manual Filter',
+            slug: 'testing-manual-filter',
+            type: 'manual',
+            filter: null
+        });
+
+        assert.throws(() => {
+            collection.filter = 'awesome:true';
+        }, (err: any) => {
+            assert.equal(err.message, 'Invalid filter provided for automatic Collection', 'Error message should match');
+            assert.equal(err.context, 'Automatic type of collection should always have a filter value', 'Error message should match');
+            return true;
         });
     });
 
@@ -220,13 +242,25 @@ describe('Collection', function () {
         assert(collection.posts.length === 0);
 
         const posts = [{
-            id: '0'
+            id: '0',
+            featured: false,
+            published_at: new Date(),
+            tags: []
         }, {
-            id: '1'
+            id: '1',
+            featured: false,
+            published_at: new Date(),
+            tags: []
         }, {
-            id: '2'
+            id: '2',
+            featured: false,
+            published_at: new Date(),
+            tags: []
         }, {
-            id: '3'
+            id: '3',
+            featured: false,
+            published_at: new Date(),
+            tags: []
         }];
 
         collection.addPost(posts[0]);
@@ -253,7 +287,9 @@ describe('Collection', function () {
 
         const added = await collection.addPost({
             id: '0',
-            featured: false
+            featured: false,
+            published_at: new Date(),
+            tags: []
         });
 
         assert.equal(added, false);
@@ -261,7 +297,9 @@ describe('Collection', function () {
 
         const featuredAdded = await collection.addPost({
             id: '1',
-            featured: true
+            featured: true,
+            published_at: new Date(),
+            tags: []
         });
 
         assert.equal(featuredAdded, true);
@@ -276,7 +314,11 @@ describe('Collection', function () {
         assert.equal(collection.posts.length, 0);
 
         collection.addPost({
-            id: '0'
+            id: '0',
+            featured: false,
+            published_at: new Date(),
+            tags: []
+
         });
 
         assert.equal(collection.posts.length, 1);
@@ -286,10 +328,10 @@ describe('Collection', function () {
         assert.equal(collection.posts.length, 0);
     });
 
-    it('Cannot set index collection to deleted', async function () {
+    it('Cannot set "latest" collection to deleted', async function () {
         const collection = await Collection.create({
             title: 'Testing adding posts',
-            slug: 'index'
+            slug: 'latest'
         });
 
         assert.equal(collection.deleted, false);
@@ -335,16 +377,76 @@ describe('Collection', function () {
 
             const featuredPost = {
                 id: '0',
-                featured: true
+                featured: true,
+                published_at: new Date(),
+                tags: []
             };
 
             const nonFeaturedPost = {
                 id: '1',
-                featured: false
+                featured: false,
+                published_at: new Date(),
+                tags: []
             };
 
             assert.ok(collection.postMatchesFilter(featuredPost), 'Post should match the filter');
             assert.ok(!collection.postMatchesFilter(nonFeaturedPost), 'Post should not match the filter');
+        });
+
+        it('Can match a post with a tag filter', async function () {
+            const collection = await Collection.create({
+                title: 'Testing filtering posts',
+                type: 'automatic',
+                filter: 'tag:avocado'
+            });
+
+            const avocadoPost = {
+                id: '0',
+                featured: false,
+                tags: [{
+                    slug: 'avocado'
+                }],
+                published_at: new Date()
+            };
+            const nonAvocadoPost = {
+                id: '1',
+                featured: false,
+                tags: [{
+                    slug: 'not-avocado'
+                }],
+                published_at: new Date()
+            };
+
+            assert.ok(collection.postMatchesFilter(avocadoPost), 'Post should match the filter');
+            assert.ok(!collection.postMatchesFilter(nonAvocadoPost), 'Post should not match the filter');
+        });
+
+        it('Can match a post with a tags filter', async function () {
+            const collection = await Collection.create({
+                title: 'Testing filtering posts',
+                type: 'automatic',
+                filter: 'tags:avocado'
+            });
+
+            const avocadoPost = {
+                id: '0',
+                featured: false,
+                tags: [{
+                    slug: 'avocado'
+                }],
+                published_at: new Date()
+            };
+            const nonAvocadoPost = {
+                id: '1',
+                featured: false,
+                tags: [{
+                    slug: 'not-avocado'
+                }],
+                published_at: new Date()
+            };
+
+            assert.ok(collection.postMatchesFilter(avocadoPost), 'Post should match the filter');
+            assert.ok(!collection.postMatchesFilter(nonAvocadoPost), 'Post should not match the filter');
         });
     });
 });

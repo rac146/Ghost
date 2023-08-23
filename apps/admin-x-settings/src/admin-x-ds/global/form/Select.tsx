@@ -7,25 +7,37 @@ import clsx from 'clsx';
 export interface SelectOption {
     value: string;
     label: string;
+    className?: string;
+}
+
+export interface SelectOptionGroup {
+    label: string;
+    options: SelectOption[];
 }
 
 export interface SelectProps {
     title?: string;
+    hideTitle?: boolean;
+    size?: 'xs' | 'md';
     prompt?: string;
-    options: SelectOption[];
+    options: SelectOption[] | SelectOptionGroup[];
     selectedOption?: string
     onSelect: (value: string) => void;
     error?:boolean;
     hint?: React.ReactNode;
     clearBg?: boolean;
+    border?: boolean;
     containerClassName?: string;
     selectClassName?: string;
     optionClassName?: string;
     unstyled?: boolean;
+    disabled?: boolean;
 }
 
 const Select: React.FC<SelectProps> = ({
     title,
+    hideTitle,
+    size = 'md',
     prompt,
     options,
     selectedOption,
@@ -33,10 +45,12 @@ const Select: React.FC<SelectProps> = ({
     error,
     hint,
     clearBg = true,
+    border = true,
     containerClassName,
     selectClassName,
     optionClassName,
-    unstyled
+    unstyled,
+    disabled = false
 }) => {
     const id = useId();
 
@@ -49,8 +63,9 @@ const Select: React.FC<SelectProps> = ({
         containerClasses = clsx(
             'relative w-full after:pointer-events-none',
             `after:absolute after:block after:h-2 after:w-2 after:rotate-45 after:border-[1px] after:border-l-0 after:border-t-0 after:border-grey-900 after:content-['']`,
-            title ? 'after:top-[14px]' : 'after:top-[14px]',
-            clearBg ? 'after:right-0' : 'after:right-4'
+            size === 'xs' ? 'after:top-[6px]' : 'after:top-[14px]',
+            clearBg ? 'after:right-0' : 'after:right-4',
+            disabled && 'opacity-40'
         );
     }
     containerClasses = clsx(
@@ -61,9 +76,12 @@ const Select: React.FC<SelectProps> = ({
     let selectClasses = '';
     if (!unstyled) {
         selectClasses = clsx(
-            'h-10 w-full cursor-pointer appearance-none border-b py-2 pr-5 outline-none',
+            size === 'xs' ? 'h-6 py-0 pr-3 text-xs' : 'h-10 py-2 pr-5',
+            'w-full appearance-none outline-none',
+            border && 'border-b',
             !clearBg && 'bg-grey-75 px-[10px]',
-            error ? 'border-red' : 'border-grey-500 hover:border-grey-700 focus:border-black',
+            error ? 'border-red' : 'border-grey-500 focus:border-black',
+            disabled ? 'cursor-auto' : 'cursor-pointer hover:border-grey-700',
             (title && !clearBg) && 'mt-2'
         );
     }
@@ -76,18 +94,30 @@ const Select: React.FC<SelectProps> = ({
 
     const select = (
         <>
-            {title && <Heading grey={selectedOption || !prompt ? true : false} htmlFor={id} useLabelTag={true}>{title}</Heading>}
+            {title && <Heading className={hideTitle ? 'sr-only' : ''} grey={selectedOption || !prompt ? true : false} htmlFor={id} useLabelTag={true}>{title}</Heading>}
             <div className={containerClasses}>
-                <select className={selectClasses} id={id} value={selectedOption} onChange={handleOptionChange}>
-                    {prompt && <option className={optionClasses} value="">{prompt}</option>}
+                <select className={selectClasses} disabled={disabled} id={id} value={selectedOption} onChange={handleOptionChange}>
+                    {prompt && <option className={optionClasses} value="" disabled selected>{prompt}</option>}
                     {options.map(option => (
-                        <option
-                            key={option.value}
-                            className={optionClasses}
-                            value={option.value}
-                        >
-                            {option.label}
-                        </option>
+                        'options' in option ?
+                            <optgroup key={option.label} label={option.label}>
+                                {option.options.map(child => (
+                                    <option
+                                        key={child.value}
+                                        className={clsx(optionClasses, child.className)}
+                                        value={child.value}
+                                    >
+                                        {child.label}
+                                    </option>
+                                ))}
+                            </optgroup> :
+                            <option
+                                key={option.value}
+                                className={clsx(optionClasses, option.className)}
+                                value={option.value}
+                            >
+                                {option.label}
+                            </option>
                     ))}
                 </select>
             </div>
@@ -96,10 +126,10 @@ const Select: React.FC<SelectProps> = ({
     );
 
     return (
-        unstyled ? select :
+        unstyled ? select : (title || hint ? (
             <div>
                 {select}
-            </div>
+            </div>) : select)
     );
 };
 

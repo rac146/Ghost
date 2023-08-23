@@ -397,6 +397,47 @@ function setupGhostApi({siteUrl = window.location.origin, apiUrl, apiKey}) {
             });
         },
 
+        async checkoutDonation({successUrl, cancelUrl, metadata = {}} = {}) {
+            const identity = await api.member.identity();
+            const url = endpointFor({type: 'members', resource: 'create-stripe-checkout-session'});
+
+            const metadataObj = {
+                fp_tid: (window.FPROM || window.$FPROM)?.data?.tid,
+                urlHistory: getUrlHistory(),
+                ...metadata
+            };
+
+            const body = {
+                identity,
+                metadata: metadataObj,
+                successUrl,
+                cancelUrl,
+                type: 'donation'
+            };
+
+            const response = await makeRequest({
+                url,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            const responseJson = await response.json();
+
+            if (!response.ok) {
+                const error = responseJson?.errors?.[0];
+                if (error) {
+                    throw error;
+                }
+
+                throw new Error('We\'re unable to process your payment right now. Please try again later.');
+            }
+
+            return responseJson;
+        },
+
         async editBilling({successUrl, cancelUrl, subscriptionId} = {}) {
             const siteUrlObj = new URL(siteUrl);
             const identity = await api.member.identity();

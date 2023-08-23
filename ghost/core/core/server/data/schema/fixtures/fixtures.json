@@ -1,6 +1,25 @@
 {
     "models": [
         {
+            "name": "Collection",
+            "entries": [
+                {
+                    "title":            "Latest",
+                    "slug":             "latest",
+                    "description":      "All posts",
+                    "type":             "automatic",
+                    "filter":           ""
+                },
+                {
+                    "title":            "Featured",
+                    "slug":             "featured",
+                    "description":      "Featured posts",
+                    "type":             "automatic",
+                    "filter":           "featured:true"
+                }
+            ]
+        },
+        {
             "name": "Product",
             "entries": [
                 {
@@ -682,6 +701,7 @@
                     "free_member_signup_notification": true,
                     "paid_subscription_started_notification": true,
                     "paid_subscription_canceled_notification": false,
+                    "donation_notifications": true,
                     "roles": []
                 }
             ]
@@ -917,6 +937,20 @@
             },
             "entries": {
                 "coming-soon": ["News"]
+            }
+        },
+        {
+            "from": {
+                "model": "Collection",
+                "match": "slug",
+                "relation": "posts"
+            },
+            "to": {
+                "model": "Post",
+                "match": "slug"
+            },
+            "entries": {
+                "latest": ["coming-soon"]
             }
         },
         {

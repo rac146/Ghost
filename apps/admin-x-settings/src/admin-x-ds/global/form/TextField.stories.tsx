@@ -1,15 +1,21 @@
+import {ReactNode} from 'react';
 import {useArgs} from '@storybook/preview-api';
 import type {Meta, StoryObj} from '@storybook/react';
 
+import Button from '../Button';
+import Select from './Select';
 import TextField from './TextField';
 
 const meta = {
     title: 'Global / Form / Textfield',
     component: TextField,
     tags: ['autodocs'],
-    decorators: [(_story: any) => (<div style={{maxWidth: '400px'}}>{_story()}</div>)],
+    decorators: [(_story: () => ReactNode) => (<div style={{maxWidth: '400px'}}>{_story()}</div>)],
     argTypes: {
         hint: {
+            control: 'text'
+        },
+        rightPlaceholder: {
             control: 'text'
         }
     }
@@ -55,6 +61,52 @@ export const WithHint: Story = {
         title: 'Title',
         placeholder: 'Enter something',
         hint: 'Here\'s some hint'
+    }
+};
+
+export const WithRightPlaceholder: Story = {
+    args: {
+        title: 'Monthly price',
+        placeholder: '0',
+        rightPlaceholder: 'USD/month'
+    }
+};
+
+export const WithoutBorder: Story = {
+    args: {
+        title: 'Title',
+        placeholder: 'Enter something',
+        hint: 'Here\'s some hint',
+        border: false
+    }
+};
+
+export const WithDropdown: Story = {
+    args: {
+        title: 'Monthly price',
+        placeholder: '0',
+        rightPlaceholder: (
+            <Select
+                border={false}
+                options={[
+                    {label: 'USD', value: 'usd'},
+                    {label: 'EUR', value: 'eur'}
+                ]}
+                selectClassName='w-auto'
+                onSelect={() => {}}
+            />
+        )
+    }
+};
+
+export const WithButton: Story = {
+    args: {
+        title: 'Get this URL',
+        value: 'https://ghost.org',
+        containerClassName: 'group',
+        rightPlaceholder: (
+            <Button className='invisible mt-2 group-hover:visible' color='white' label='Copy' size='sm' />
+        )
     }
 };
 

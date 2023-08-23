@@ -2,7 +2,6 @@
 const _ = require('lodash');
 const uuid = require('uuid');
 const moment = require('moment');
-const Promise = require('bluebird');
 const {sequence} = require('@tryghost/promise');
 const tpl = require('@tryghost/tpl');
 const errors = require('@tryghost/errors');
@@ -20,6 +19,8 @@ const {Tag} = require('./tag');
 const {Newsletter} = require('./newsletter');
 const {BadRequestError} = require('@tryghost/errors');
 const {PostRevisions} = require('@tryghost/post-revisions');
+const {mobiledocToLexical} = require('@tryghost/kg-converters');
+const labs = require('../../shared/labs');
 
 const messages = {
     isAlreadyPublished: 'Your post is already published, please reload your page.',
@@ -94,7 +95,8 @@ Post = ghostBookshelf.Model.extend({
             type: 'post',
             tiers,
             visibility: visibility,
-            email_recipient_filter: 'all'
+            email_recipient_filter: 'all',
+            show_title_and_feature_image: true
         };
     },
 
@@ -688,7 +690,7 @@ Post = ghostBookshelf.Model.extend({
             )
         ) {
             try {
-                this.set('html', lexicalLib.render(this.get('lexical')));
+                this.set('html', await lexicalLib.render(this.get('lexical')));
             } catch (err) {
                 throw new errors.ValidationError({
                     message: tpl(messages.invalidLexicalStructure),
@@ -910,6 +912,16 @@ Post = ghostBookshelf.Model.extend({
                 };
                 const newRevisions = await postRevisions.getRevisions(current, revisions, revisionOptions);
                 model.set('post_revisions', newRevisions);
+            });
+        }
+
+        // CASE: Convert post to lexical on the fly
+        if (labs.isSet('convertToLexical') && labs.isSet('lexicalEditor') && options.convert_to_lexical) {
+            ops.push(async function convertToLexical() {
+                const mobiledoc = model.get('mobiledoc');
+                const lexical = mobiledocToLexical(mobiledoc);
+                model.set('lexical', lexical);
+                model.set('mobiledoc', null);
             });
         }
 
@@ -1154,9 +1166,10 @@ Post = ghostBookshelf.Model.extend({
         const validOptions = {
             findOne: ['columns', 'importing', 'withRelated', 'require', 'filter'],
             findPage: ['status'],
+
             findAll: ['columns', 'filter'],
             destroy: ['destroyAll', 'destroyBy'],
-            edit: ['filter', 'email_segment', 'force_rerender', 'newsletter', 'save_revision']
+            edit: ['filter', 'email_segment', 'force_rerender', 'newsletter', 'save_revision', 'convert_to_lexical']
         };
 
         // The post model additionally supports having a formats option

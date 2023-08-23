@@ -7,18 +7,19 @@ import Menu, {MenuItem} from '../../../admin-x-ds/global/Menu';
 import Modal from '../../../admin-x-ds/global/modal/Modal';
 import NiceModal, {useModal} from '@ebay/nice-modal-react';
 import Radio from '../../../admin-x-ds/global/form/Radio';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import TextField from '../../../admin-x-ds/global/form/TextField';
 import Toggle from '../../../admin-x-ds/global/form/Toggle';
-import useRoles from '../../../hooks/useRoles';
+import useRouting from '../../../hooks/useRouting';
 import useStaffUsers from '../../../hooks/useStaffUsers';
 import validator from 'validator';
-import {FileService, ServicesContext} from '../../providers/ServiceProvider';
-import {User} from '../../../types/api';
-import {isAdminUser, isOwnerUser} from '../../../utils/helpers';
+import {User, isAdminUser, isOwnerUser, useDeleteUser, useEditUser, useMakeOwner, useUpdatePassword} from '../../../api/users';
+import {getImageUrl, useUploadImage} from '../../../api/images';
 import {showToast} from '../../../admin-x-ds/global/Toast';
+import {toast} from 'react-hot-toast';
+import {useBrowseRoles} from '../../../api/roles';
 
 interface CustomHeadingProps {
     children?: React.ReactNode;
@@ -28,9 +29,15 @@ interface UserDetailProps {
     user: User;
     setUserData?: (user: User) => void;
     errors?: {
+        name?: string;
         url?: string;
         email?: string;
     };
+    validators?: {
+        name: (name: string) => boolean,
+        email: (email: string) => boolean,
+        url: (url: string) => boolean
+    }
 }
 
 const CustomHeader: React.FC<CustomHeadingProps> = ({children}) => {
@@ -40,7 +47,8 @@ const CustomHeader: React.FC<CustomHeadingProps> = ({children}) => {
 };
 
 const RoleSelector: React.FC<UserDetailProps> = ({user, setUserData}) => {
-    const {roles} = useRoles();
+    const {data: {roles} = {}} = useBrowseRoles();
+
     if (isOwnerUser(user)) {
         return (
             <>
@@ -89,13 +97,18 @@ const RoleSelector: React.FC<UserDetailProps> = ({user, setUserData}) => {
         />
     );
 };
-const BasicInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) => {
+
+const BasicInputs: React.FC<UserDetailProps> = ({errors, validators, user, setUserData}) => {
     return (
         <SettingGroupContent>
             <TextField
-                hint="Use real name so people can recognize you"
+                error={!!errors?.name}
+                hint={errors?.name || 'Use real name so people can recognize you'}
                 title="Full name"
                 value={user.name}
+                onBlur={(e) => {
+                    validators?.name(e.target.value);
+                }}
                 onChange={(e) => {
                     setUserData?.({...user, name: e.target.value});
                 }}
@@ -105,6 +118,9 @@ const BasicInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) => 
                 hint={errors?.email || ''}
                 title="Email"
                 value={user.email}
+                onBlur={(e) => {
+                    validators?.email(e.target.value);
+                }}
                 onChange={(e) => {
                     setUserData?.({...user, email: e.target.value});
                 }}
@@ -114,19 +130,19 @@ const BasicInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) => 
     );
 };
 
-const Basic: React.FC<UserDetailProps> = ({errors, user, setUserData}) => {
+const Basic: React.FC<UserDetailProps> = ({errors, validators, user, setUserData}) => {
     return (
         <SettingGroup
             border={false}
             customHeader={<CustomHeader>Basic info</CustomHeader>}
             title='Basic'
         >
-            <BasicInputs errors={errors} setUserData={setUserData} user={user} />
+            <BasicInputs errors={errors} setUserData={setUserData} user={user} validators={validators} />
         </SettingGroup>
     );
 };
 
-const DetailsInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) => {
+const DetailsInputs: React.FC<UserDetailProps> = ({errors, validators, user, setUserData}) => {
     return (
         <SettingGroupContent>
             <TextField
@@ -149,6 +165,9 @@ const DetailsInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) =
                 hint={errors?.url || ''}
                 title="Website"
                 value={user.website}
+                onBlur={(e) => {
+                    validators?.url(e.target.value);
+                }}
                 onChange={(e) => {
                     setUserData?.({...user, website: e.target.value});
                 }}
@@ -179,14 +198,14 @@ const DetailsInputs: React.FC<UserDetailProps> = ({errors, user, setUserData}) =
     );
 };
 
-const Details: React.FC<UserDetailProps> = ({errors, user, setUserData}) => {
+const Details: React.FC<UserDetailProps> = ({errors, validators, user, setUserData}) => {
     return (
         <SettingGroup
             border={false}
             customHeader={<CustomHeader>Details</CustomHeader>}
             title='Details'
         >
-            <DetailsInputs errors={errors} setUserData={setUserData} user={user} />
+            <DetailsInputs errors={errors} setUserData={setUserData} user={user} validators={validators} />
         </SettingGroup>
     );
 };
@@ -285,7 +304,8 @@ const Password: React.FC<UserDetailProps> = ({user}) => {
     }>({});
     const newPasswordRef = useRef<HTMLInputElement>(null);
     const confirmNewPasswordRef = useRef<HTMLInputElement>(null);
-    const {api} = useContext(ServicesContext);
+
+    const {mutateAsync: updatePassword} = useUpdatePassword();
 
     useEffect(() => {
         if (saveState === 'saved') {
@@ -360,7 +380,7 @@ const Password: React.FC<UserDetailProps> = ({user}) => {
                         return;
                     }
                     try {
-                        await api.users.updatePassword({
+                        await updatePassword({
                             newPassword,
                             confirmNewPassword,
                             oldPassword: '',
@@ -390,7 +410,6 @@ const Password: React.FC<UserDetailProps> = ({user}) => {
 
 interface UserDetailModalProps {
     user: User;
-    updateUser?: (user: User) => void;
 }
 
 const UserMenuTrigger = () => (
@@ -400,18 +419,31 @@ const UserMenuTrigger = () => (
     </button>
 );
 
-const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
-    const {api} = useContext(ServicesContext);
-    const {users, setUsers, ownerUser} = useStaffUsers();
+const UserDetailModal:React.FC<UserDetailModalProps> = ({user}) => {
+    const {updateRoute} = useRouting();
+    const {ownerUser} = useStaffUsers();
     const [userData, setUserData] = useState(user);
     const [saveState, setSaveState] = useState('');
     const [errors, setErrors] = useState<{
+        name?: string;
         email?: string;
         url?: string;
     }>({});
 
-    const {fileService} = useContext(ServicesContext) as {fileService: FileService};
     const mainModal = useModal();
+    const {mutateAsync: uploadImage} = useUploadImage();
+    const {mutateAsync: updateUser} = useEditUser();
+    const {mutateAsync: deleteUser} = useDeleteUser();
+    const {mutateAsync: makeOwner} = useMakeOwner();
+
+    useEffect(() => {
+        if (saveState === 'saved') {
+            setTimeout(() => {
+                mainModal.remove();
+                updateRoute('users');
+            }, 300);
+        }
+    }, [mainModal, saveState, updateRoute]);
 
     const confirmSuspend = (_user: User) => {
         let warningText = 'This user will no longer be able to log in but their posts will be kept.';
@@ -433,16 +465,7 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
                     ..._user,
                     status: _user.status === 'inactive' ? 'active' : 'inactive'
                 };
-                const res = await api.users.edit(updatedUserData);
-                const updatedUser = res.users[0];
-                setUsers((_users) => {
-                    return _users.map((u) => {
-                        if (u.id === updatedUser.id) {
-                            return updatedUser;
-                        }
-                        return u;
-                    });
-                });
+                await updateUser(updatedUserData);
                 setUserData(updatedUserData);
                 modal?.remove();
                 showToast({
@@ -465,9 +488,7 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
             okLabel: 'Delete user',
             okColor: 'red',
             onOk: async (modal) => {
-                await api.users.delete(_user?.id);
-                const newUsers = users.filter(u => u.id !== _user.id);
-                setUsers(newUsers);
+                await deleteUser(_user?.id);
                 modal?.remove();
                 mainModal?.remove();
                 showToast({
@@ -485,8 +506,7 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
             okLabel: 'Yep — I\'m sure',
             okColor: 'red',
             onOk: async (modal) => {
-                const res = await api.users.makeOwner(user.id);
-                setUsers(res.users);
+                await makeOwner(user.id);
                 modal?.remove();
                 showToast({
                     message: 'Ownership transferred',
@@ -498,7 +518,7 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
 
     const handleImageUpload = async (image: string, file: File) => {
         try {
-            const imageUrl = await fileService.uploadImage(file);
+            const imageUrl = getImageUrl(await uploadImage({file}));
 
             switch (image) {
             case 'cover_image':
@@ -512,8 +532,8 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
                 });
                 break;
             }
-        } catch (err: any) {
-            // handle error
+        } catch (err) {
+            // TODO: handle error
         }
     };
 
@@ -568,48 +588,65 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
         }
     ]);
 
-    let okLabel = saveState === 'saved' ? 'Saved' : 'Save';
+    let okLabel = saveState === 'saved' ? 'Saved' : 'Save & close';
+
     if (saveState === 'saving') {
         okLabel = 'Saving...';
+    } else if (saveState === 'saved') {
+        okLabel = 'Saved';
     }
-
-    // remove saved state after 2 seconds
-    useEffect(() => {
-        if (saveState === 'saved') {
-            setTimeout(() => {
-                setSaveState('');
-            }, 2000);
-        }
-    }, [saveState]);
 
     const fileUploadButtonClasses = 'absolute right-[104px] bottom-12 bg-[rgba(0,0,0,0.75)] rounded text-sm text-white flex items-center justify-center px-3 h-8 opacity-80 hover:opacity-100 transition cursor-pointer font-medium z-10';
 
     const suspendedText = userData.status === 'inactive' ? ' (Suspended)' : '';
 
+    const validators = {
+        name: (name: string) => {
+            setErrors?.((_errors) => {
+                return {..._errors, name: name ? '' : 'Please enter a name'};
+            });
+            return !!name;
+        },
+        email: (email: string) => {
+            const valid = validator.isEmail(email);
+            setErrors?.((_errors) => {
+                return {..._errors, email: valid ? '' : 'Please enter a valid email address'};
+            });
+            return valid;
+        },
+        url: (url: string) => {
+            const valid = !url || validator.isURL(url);
+            setErrors?.((_errors) => {
+                return {..._errors, url: valid ? '' : 'Please enter a valid URL'};
+            });
+            return valid;
+        }
+    };
+
     return (
         <Modal
-            backDropClick={false}
-            cancelLabel='Close'
+            afterClose={() => updateRoute('users')}
             okLabel={okLabel}
             size='lg'
             stickyFooter={true}
             testId='user-detail-modal'
             onOk={async () => {
                 setSaveState('saving');
-                if (!validator.isEmail(userData.email)) {
-                    setErrors?.((_errors) => {
-                        return {..._errors, email: 'Please enter a valid email address'};
+                let error = false;
+                if (!validators.name(userData.name) || !validators.email(userData.email) || !validators.url(userData.website)) {
+                    error = true;
+                }
+
+                if (error) {
+                    showToast({
+                        type: 'pageError',
+                        message: 'Can\'t save user! One or more fields have errors, please doublecheck you filled all mandatory fields'
                     });
                     setSaveState('');
                     return;
                 }
-                if (!validator.isURL(userData.url)) {
-                    setErrors?.((_errors) => {
-                        return {..._errors, url: 'Please enter a valid URL'};
-                    });
-                    setSaveState('');
-                    return;
-                }
+
+                toast.dismiss();
 
                 await updateUser?.(userData);
                 setSaveState('saved');
@@ -634,7 +671,7 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
                             handleImageUpload('cover_image', file);
                         }}
                     >Upload cover image</ImageUpload>
-                    <div className="absolute bottom-12 right-12">
+                    <div className="absolute bottom-12 right-12 z-10">
                         <Menu items={menuItems} position='left' trigger={<UserMenuTrigger />}></Menu>
                     </div>
                     <div className='relative flex items-center gap-4 px-12 pb-7 pt-60'>
@@ -664,8 +701,8 @@ const UserDetailModal:React.FC<UserDetailModalProps> = ({user, updateUser}) => {
                     </div>
                 </div>
                 <div className='mt-10 grid grid-cols-2 gap-x-12 gap-y-20'>
-                    <Basic errors={errors} setUserData={setUserData} user={userData} />
-                    <Details errors={errors} setUserData={setUserData} user={userData} />
+                    <Basic errors={errors} setUserData={setUserData} user={userData} validators={validators} />
+                    <Details errors={errors} setUserData={setUserData} user={userData} validators={validators} />
                     <EmailNotifications setUserData={setUserData} user={userData} />
                     <Password user={userData} />
                 </div>

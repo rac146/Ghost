@@ -4,11 +4,16 @@ import SettingNavItem from '../admin-x-ds/settings/SettingNavItem';
 import SettingNavSection from '../admin-x-ds/settings/SettingNavSection';
 import TextField from '../admin-x-ds/global/form/TextField';
 import useRouting from '../hooks/useRouting';
+import {getSettingValues} from '../api/settings';
+import {useGlobalData} from './providers/GlobalDataProvider';
 import {useSearch} from './providers/ServiceProvider';
 
 const Sidebar: React.FC = () => {
     const {filter, setFilter} = useSearch();
     const {updateRoute} = useRouting();
+
+    const {settings} = useGlobalData();
+    const [newslettersEnabled] = getSettingValues(settings, ['editor_default_email_recipients']) as [string];
 
     const handleSectionClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         updateRoute(e.currentTarget.name);
@@ -34,8 +39,8 @@ const Sidebar: React.FC = () => {
             </SettingNavSection>
 
             <SettingNavSection title="Site">
-                <SettingNavItem navid='theme' title="Theme" onClick={handleSectionClick} />
-                <SettingNavItem navid='branding-and-design' title="Branding and design" onClick={handleSectionClick} />
+                {/* <SettingNavItem navid='theme' title="Theme" onClick={handleSectionClick} /> */}
+                <SettingNavItem navid='design' title="Branding and design" onClick={handleSectionClick} />
                 <SettingNavItem navid='navigation' title="Navigation" onClick={handleSectionClick} />
             </SettingNavSection>
 
@@ -43,14 +48,19 @@ const Sidebar: React.FC = () => {
                 <SettingNavItem navid='portal' title="Portal" onClick={handleSectionClick} />
                 <SettingNavItem navid='access' title="Access" onClick={handleSectionClick} />
                 <SettingNavItem navid='tiers' title="Tiers" onClick={handleSectionClick} />
+                <SettingNavItem navid='tips-or-donations' title="Tips or donations" onClick={handleSectionClick} />
                 <SettingNavItem navid='analytics' title="Analytics" onClick={handleSectionClick} />
             </SettingNavSection>
 
             <SettingNavSection title="Email newsletters">
-                <SettingNavItem navid='newsletter-sending' title="Newsletter sending" onClick={handleSectionClick} />
-                <SettingNavItem navid='newsletters' title="Newsletters" onClick={handleSectionClick} />
-                <SettingNavItem navid='default-recipients' title="Default recipients" onClick={handleSectionClick} />
-                <SettingNavItem navid='mailgun' title="Mailgun settings" onClick={handleSectionClick} />
+                <SettingNavItem navid='enable-newsletters' title="Newsletter sending" onClick={handleSectionClick} />
+                {newslettersEnabled !== 'disabled' && (
+                    <>
+                        <SettingNavItem navid='newsletters' title="Newsletters" onClick={handleSectionClick} />
+                        <SettingNavItem navid='default-recipients' title="Default recipients" onClick={handleSectionClick} />
+                        <SettingNavItem navid='mailgun' title="Mailgun settings" onClick={handleSectionClick} />
+                    </>
+                )}
             </SettingNavSection>
 
             <SettingNavSection title="Advanced">

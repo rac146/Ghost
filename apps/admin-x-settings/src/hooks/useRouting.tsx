@@ -1,16 +1,16 @@
-import {RouteContext} from '../components/providers/RoutingProvider';
+import {RouteContext, RoutingContextData} from '../components/providers/RoutingProvider';
 import {useContext} from 'react';
 
-export type RoutingHook = {
-    route: string;
-    updateRoute: (newPath: string) => void
-};
+export type RoutingHook = Pick<RoutingContextData, 'route' | 'scrolledRoute' | 'yScroll' | 'updateRoute' | 'updateScrolled'>;
 
 const useRouting = (): RoutingHook => {
-    const {route, updateRoute} = useContext(RouteContext);
+    const {route, scrolledRoute, yScroll, updateScrolled, updateRoute} = useContext(RouteContext);
 
     return {
         route,
+        scrolledRoute,
+        yScroll,
+        updateScrolled,
         updateRoute
     };
 };

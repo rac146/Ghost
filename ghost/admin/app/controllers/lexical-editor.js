@@ -16,6 +16,7 @@ import {GENERIC_ERROR_MESSAGE} from '../services/notifications';
 import {action, computed} from '@ember/object';
 import {alias, mapBy} from '@ember/object/computed';
 import {capitalize} from '@ember/string';
+import {captureMessage} from '@sentry/ember';
 import {dropTask, enqueueTask, restartableTask, task, taskGroup, timeout} from 'ember-concurrency';
 import {htmlSafe} from '@ember/template';
 import {inject} from 'ghost-admin/decorators/inject';
@@ -185,6 +186,11 @@ export default class LexicalEditorController extends Controller {
 
             return item;
         });
+    }
+
+    @computed
+    get collections() {
+        return this.store.peekAll('collection');
     }
 
     @computed('session.user.{isAdmin,isEditor}')
@@ -671,10 +677,36 @@ export default class LexicalEditorController extends Controller {
             this.post.set('emailOnly', options.emailOnly);
         }
 
+        const startTime = Date.now();
+
         try {
             yield post.save(options);
+
+            // log if a save is slow
+            if (this.config.sentry_dsn && (Date.now() - startTime > 2000)) {
+                captureMessage('Successful Lexical save took > 2s', (scope) => {
+                    scope.setTag('save_time', Math.ceil((Date.now() - startTime) / 1000));
+                    scope.setTag('post_type', post.isPage ? 'page' : 'post');
+                    scope.setTag('save_revision', options.adapterOptions?.saveRevision);
+                    scope.setTag('email_segment', options.adapterOptions?.emailSegment);
+                    scope.setTag('save_revision', options.adapterOptions?.saveRevision);
+                    scope.setTag('convert_to_lexical', options.adapterOptions?.convertToLexical);
+                });
+            }
         } catch (error) {
             this.post.set('emailOnly', previousEmailOnlyValue);
+
+            if (this.config.sentry_dsn && (Date.now() - startTime > 2000)) {
+                captureMessage('Failed Mobiledoc save took > 2s', (scope) => {
+                    scope.setTag('save_time', Math.ceil((Date.now() - startTime) / 1000));
+                    scope.setTag('post_type', post.isPage ? 'page' : 'post');
+                    scope.setTag('save_revision', options.adapterOptions?.saveRevision);
+                    scope.setTag('email_segment', options.adapterOptions?.emailSegment);
+                    scope.setTag('save_revision', options.adapterOptions?.saveRevision);
+                    scope.setTag('convert_to_lexical', options.adapterOptions?.convertToLexical);
+                });
+            }
+
             if (isServerUnreachableError(error)) {
                 const [prevStatus, newStatus] = this.post.changedAttributes().status || [this.post.status, this.post.status];
                 this._showErrorAlert(prevStatus, newStatus, error);
@@ -775,10 +807,13 @@ export default class LexicalEditorController extends Controller {
         }
     }
 
-    // load supplemental data such as snippets and members count in the background
+    // load supplemental data such as snippets and collections in the background
     @restartableTask
     *backgroundLoaderTask() {
         yield this.store.query('snippet', {limit: 'all'});
+        if (this.post.displayName === 'page' && this.feature.get('collections') && this.feature.get('collectionsCard')) {
+            yield this.store.query('collection', {limit: 'all'});
+        }
         this.syncMobiledocSnippets();
     }
 

@@ -81,7 +81,8 @@ module.exports = {
             inter: 'Inter',
             sans: 'Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif',
             serif: 'Georgia, serif',
-            mono: 'Consolas, Liberation Mono, Menlo, Courier, monospace'
+            mono: 'Consolas, Liberation Mono, Menlo, Courier, monospace',
+            inherit: 'inherit'
         },
         boxShadow: {
             DEFAULT: '0 0 1px rgba(0,0,0,.05), 0 5px 18px rgba(0,0,0,.08)',
@@ -135,12 +136,50 @@ module.exports = {
                     '100%': {
                         opacity: '0'
                     }
+                },
+                fadeIn: {
+                    '0%': {
+                        opacity: '0'
+                    },
+                    '100%': {
+                        opacity: '1'
+                    }
+                },
+                fadeOut: {
+                    '0%': {
+                        opacity: '1'
+                    },
+                    '100%': {
+                        opacity: '0'
+                    }
+                },
+                modalIn: {
+                    '0%': {
+                        transform: 'translateY(32px)'
+                    },
+                    '100%': {
+                        transform: 'translateY(0px)'
+                    }
+                },
+                modalInReverse: {
+                    '0%': {
+                        transform: 'translateY(-32px)'
+                    },
+                    '100%': {
+                        transform: 'translateY(0px)'
+                    }
                 }
             },
             animation: {
                 'toaster-in': 'toasterIn 0.8s cubic-bezier(0.445, 0.050, 0.550, 0.950)',
                 'toaster-out': 'toasterOut 0.4s 0s 1 ease forwards',
-                'toaster-top-in': 'toasterTopIn 0.8s cubic-bezier(0.445, 0.050, 0.550, 0.950)'
+                'toaster-top-in': 'toasterTopIn 0.8s cubic-bezier(0.445, 0.050, 0.550, 0.950)',
+                'fade-in': 'fadeIn 0.15s ease forwards',
+                'fade-out': 'fadeOut 0.15s ease forwards',
+                'setting-highlight-fade-out': 'fadeOut 0.2s 1.4s ease forwards',
+                'modal-backdrop-in': 'fadeIn 0.15s ease forwards',
+                'modal-in': 'modalIn 0.25s ease forwards',
+                'modal-in-reverse': 'modalInReverse 0.25s ease forwards'
             },
             spacing: {
                 px: '1px',
@@ -213,12 +252,12 @@ module.exports = {
                 full: '9999px'
             },
             fontSize: {
-                '2xs': '1.05rem',
+                '2xs': '1.0rem',
                 base: '1.5rem',
                 xs: '1.2rem',
                 sm: '1.35rem',
                 md: '1.5rem',
-                lg: '1.8rem',
+                lg: '1.75rem',
                 xl: '2rem',
                 '2xl': '2.4rem',
                 '3xl': '3rem',
@@ -227,7 +266,8 @@ module.exports = {
                 '6xl': ['6rem', '1'],
                 '7xl': ['7.2rem', '1'],
                 '8xl': ['9.6rem', '1'],
-                '9xl': ['12.8rem', '1']
+                '9xl': ['12.8rem', '1'],
+                inherit: 'inherit'
             },
             lineHeight: {
                 base: '1.5em',

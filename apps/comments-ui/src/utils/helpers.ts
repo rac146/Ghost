@@ -1,30 +1,4 @@
-import {Comment, PopupNotification} from '../AppContext';
-
-export const createPopupNotification = ({type, status, autoHide, duration = 2600, closeable, state, message, meta = {}}: {
-    type: string,
-    status: string,
-    autoHide: boolean,
-    duration?: number,
-    closeable: boolean,
-    state: any,
-    message: string,
-    meta?: any
-}): PopupNotification => {
-    let count = 0;
-    if (state && state.popupNotification) {
-        count = (state.popupNotification.count || 0) + 1;
-    }
-    return {
-        type,
-        status,
-        autoHide,
-        closeable,
-        duration,
-        meta,
-        message,
-        count
-    };
-};
+import {Comment} from '../AppContext';
 
 export function formatNumber(number: number): string {
     if (number !== 0 && !number) {
@@ -96,11 +70,11 @@ export function formatRelativeTime(dateString: string): string {
 export function formatExplicitTime(dateString: string): string {
     const date = new Date(dateString);
 
-    let day = date.toLocaleDateString('en-us', {day: '2-digit'}); // eg. 01
-    let month = date.toLocaleString('en-us', {month: 'short'}); // eg. Jan
-    let year = date.getFullYear(); // eg. 2022
-    let hour = (date.getHours() < 10 ? '0' : '') + date.getHours(); // eg. 02
-    let minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes(); // eg. 09
+    const day = date.toLocaleDateString('en-us', {day: '2-digit'}); // eg. 01
+    const month = date.toLocaleString('en-us', {month: 'short'}); // eg. Jan
+    const year = date.getFullYear(); // eg. 2022
+    const hour = (date.getHours() < 10 ? '0' : '') + date.getHours(); // eg. 02
+    const minute = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes(); // eg. 09
 
     return `${day} ${month} ${year} ${hour}:${minute}`;
 }
@@ -147,7 +121,7 @@ export const getScrollToPosition = (element: HTMLElement) => {
         const currentParentWindow = currentWindow.parent;
         for (let idx = 0; idx < currentParentWindow.frames.length; idx++) {
             if (currentParentWindow.frames[idx] === currentWindow) {
-                for (let frameElement of currentParentWindow.document.getElementsByTagName('iframe')) {
+                for (const frameElement of currentParentWindow.document.getElementsByTagName('iframe')) {
                     if (frameElement.contentWindow === currentWindow) {
                         const rect = frameElement.getBoundingClientRect();
                         yOffset += rect.top + currentWindow.pageYOffset;

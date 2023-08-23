@@ -155,6 +155,15 @@ export function getMemberActivePrice({member}) {
     return getPriceFromSubscription({subscription});
 }
 
+export function getMemberActiveProduct({member, site}) {
+    const subscription = getMemberSubscription({member});
+    const price = getPriceFromSubscription({subscription});
+    const allProducts = getAllProductsForSite({site});
+    return allProducts.find((product) => {
+        return product.id === price?.product.product_id;
+    });
+}
+
 export function isMemberActivePrice({priceId, site, member}) {
     const activePrice = getMemberActivePrice({member});
     const {tierId, cadence} = getProductCadenceFromPrice({site, priceId});
@@ -259,6 +268,14 @@ export function capitalize(str) {
 export function isInviteOnlySite({site = {}, pageQuery = ''}) {
     const prices = getSitePrices({site, pageQuery});
     return prices.length === 0 || (site && site.members_signup_access === 'invite');
+}
+
+export function isSigninAllowed({site}) {
+    return site?.members_signup_access === 'all' || site?.members_signup_access === 'invite';
+}
+
+export function isSignupAllowed({site}) {
+    return site?.members_signup_access === 'all' && (site?.is_stripe_configured || hasOnlyFreePlan({site}));
 }
 
 export function hasMultipleProducts({site}) {
@@ -441,7 +458,7 @@ export function hasBenefits({prices, site}) {
 
 export function getSiteProducts({site, pageQuery}) {
     const products = getAvailableProducts({site});
-    const showOnlyFree = pageQuery === 'free' && hasFreeProductPrice({site});
+    const showOnlyFree = pageQuery === 'free';
     if (showOnlyFree) {
         return [];
     }

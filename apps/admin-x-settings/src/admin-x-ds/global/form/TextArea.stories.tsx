@@ -1,3 +1,4 @@
+import {ReactNode} from 'react';
 import {useArgs} from '@storybook/preview-api';
 import type {Meta, StoryObj} from '@storybook/react';
 
@@ -7,7 +8,7 @@ const meta = {
     title: 'Global / Form / Textarea',
     component: TextArea,
     tags: ['autodocs'],
-    decorators: [(_story: any) => (<div style={{maxWidth: '400px'}}>{_story()}</div>)],
+    decorators: [(_story: () => ReactNode) => (<div style={{maxWidth: '400px'}}>{_story()}</div>)],
     argTypes: {
         hint: {
             control: 'text'
@@ -21,13 +22,6 @@ type Story = StoryObj<typeof TextArea>;
 export const Default: Story = {
     args: {
         placeholder: 'Enter description'
-    }
-};
-
-export const ClearBackground: Story = {
-    args: {
-        placeholder: 'Enter description',
-        clearBg: true
     }
 };
 

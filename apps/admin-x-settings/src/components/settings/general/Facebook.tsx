@@ -1,13 +1,12 @@
 import ImageUpload from '../../../admin-x-ds/global/form/ImageUpload';
-import React, {useContext} from 'react';
+import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextArea from '../../../admin-x-ds/global/form/TextArea';
 import TextField from '../../../admin-x-ds/global/form/TextField';
 import useSettingGroup from '../../../hooks/useSettingGroup';
 import {ReactComponent as FacebookLogo} from '../../../admin-x-ds/assets/images/facebook-logo.svg';
-import {FileService, ServicesContext} from '../../providers/ServiceProvider';
-import {getSettingValues} from '../../../utils/helpers';
+import {getImageUrl, useUploadImage} from '../../../api/images';
+import {getSettingValues} from '../../../api/settings';
 
 const Facebook: React.FC<{ keywords: string[] }> = ({keywords}) => {
     const {
@@ -21,7 +20,7 @@ const Facebook: React.FC<{ keywords: string[] }> = ({keywords}) => {
         handleEditingChange
     } = useSettingGroup();
 
-    const {fileService} = useContext(ServicesContext) as {fileService: FileService};
+    const {mutateAsync: uploadImage} = useUploadImage();
 
     const [
         facebookTitle, facebookDescription, facebookImage, siteTitle, siteDescription
@@ -31,12 +30,12 @@ const Facebook: React.FC<{ keywords: string[] }> = ({keywords}) => {
         updateSetting('og_title', e.target.value);
     };
 
-    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('og_description', e.target.value);
     };
 
     const handleImageUpload = async (file: File) => {
-        const imageUrl = await fileService.uploadImage(file);
+        const imageUrl = getImageUrl(await uploadImage({file}));
         updateSetting('og_image', imageUrl);
     };
 
@@ -82,10 +81,9 @@ const Facebook: React.FC<{ keywords: string[] }> = ({keywords}) => {
                             value={facebookTitle}
                             onChange={handleTitleChange}
                         />
-                        <TextArea
+                        <TextField
                             clearBg={true}
                             placeholder={siteDescription}
-                            rows={2}
                             title="Facebook description"
                             value={facebookDescription}
                             onChange={handleDescriptionChange}

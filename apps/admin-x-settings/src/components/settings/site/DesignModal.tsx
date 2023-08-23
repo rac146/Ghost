@@ -1,30 +1,40 @@
 import BrandSettings, {BrandSettingValues} from './designAndBranding/BrandSettings';
-import NiceModal, {useModal} from '@ebay/nice-modal-react';
-import React, {useContext, useEffect, useState} from 'react';
+// import Button from '../../../admin-x-ds/global/Button';
+// import ChangeThemeModal from './ThemeModal';
+import Icon from '../../../admin-x-ds/global/Icon';
+import NiceModal, {NiceModalHandler, useModal} from '@ebay/nice-modal-react';
+import React, {useEffect, useState} from 'react';
+import StickyFooter from '../../../admin-x-ds/global/StickyFooter';
 import TabView, {Tab} from '../../../admin-x-ds/global/TabView';
 import ThemePreview from './designAndBranding/ThemePreview';
 import ThemeSettings from './designAndBranding/ThemeSettings';
 import useForm from '../../../hooks/useForm';
 import useRouting from '../../../hooks/useRouting';
-import {CustomThemeSetting, Post, Setting, SettingValue} from '../../../types/api';
+import {CustomThemeSetting, useBrowseCustomThemeSettings, useEditCustomThemeSettings} from '../../../api/customThemeSettings';
 import {PreviewModalContent} from '../../../admin-x-ds/global/modal/PreviewModal';
-import {ServicesContext} from '../../providers/ServiceProvider';
-import {SettingsContext} from '../../providers/SettingsProvider';
-import {getHomepageUrl, getSettingValues} from '../../../utils/helpers';
+import {Setting, SettingValue, getSettingValues, useEditSettings} from '../../../api/settings';
+import {getHomepageUrl} from '../../../api/site';
+import {useBrowsePosts} from '../../../api/posts';
+import {useGlobalData} from '../../providers/GlobalDataProvider';
 
 const Sidebar: React.FC<{
     brandSettings: BrandSettingValues
-    updateBrandSetting: (key: string, value: SettingValue) => void
     themeSettingSections: Array<{id: string, title: string, settings: CustomThemeSetting[]}>
+    modal: NiceModalHandler<Record<string, unknown>>;
+    updateBrandSetting: (key: string, value: SettingValue) => void
     updateThemeSetting: (updated: CustomThemeSetting) => void
     onTabChange: (id: string) => void
+    handleSave: () => Promise<boolean>
 }> = ({
     brandSettings,
-    updateBrandSetting,
     themeSettingSections,
+    modal,
+    updateBrandSetting,
     updateThemeSetting,
-    onTabChange
+    onTabChange,
+    handleSave
 }) => {
+    const {updateRoute} = useRouting();
     const [selectedTab, setSelectedTab] = useState('brand');
 
     const tabs: Tab[] = [
@@ -46,29 +56,43 @@ const Sidebar: React.FC<{
     };
 
     return (
-        <>
+        <div className='flex h-full flex-col justify-between'>
             <div className='p-7' data-testid="design-setting-tabs">
                 <TabView selectedTab={selectedTab} tabs={tabs} onTabChange={handleTabChange} />
             </div>
-        </>
+            <StickyFooter height={74}>
+                <div className='w-full px-7'>
+                    <button className='group flex w-full items-center justify-between text-sm font-medium opacity-80 transition-all hover:opacity-100' data-testid='change-theme' type='button' onClick={async () => {
+                        await handleSave();
+                        modal.remove();
+                        updateRoute('design/edit/themes');
+                    }}>
+                        Change theme
+                        <Icon className='mr-2 transition-all group-hover:translate-x-2' name='chevron-right' size='sm' />
+                    </button>
+                </div>
+            </StickyFooter>
+        </div>
     );
 };
 
 const DesignModal: React.FC = () => {
     const modal = useModal();
 
-    const {api} = useContext(ServicesContext);
-    const {settings, siteData, saveSettings} = useContext(SettingsContext);
-    const [themeSettings, setThemeSettings] = useState<Array<CustomThemeSetting>>([]);
-    const [latestPost, setLatestPost] = useState<Post | null>(null);
+    const {settings, siteData} = useGlobalData();
+    const {mutateAsync: editSettings} = useEditSettings();
+    const {data: {posts: [latestPost]} = {posts: []}} = useBrowsePosts({
+        searchParams: {
+            filter: 'status:published',
+            order: 'published_at DESC',
+            limit: '1',
+            fields: 'id,url'
+        }
+    });
+    const {data: themeSettings} = useBrowseCustomThemeSettings();
+    const {mutateAsync: editThemeSettings} = useEditCustomThemeSettings();
     const [selectedPreviewTab, setSelectedPreviewTab] = useState('homepage');
     const {updateRoute} = useRouting();
-
-    useEffect(() => {
-        api.latestPost.browse().then((response) => {
-            setLatestPost(response.posts[0]);
-        });
-    }, [api]);
 
     const {
         formState,
@@ -79,28 +103,26 @@ const DesignModal: React.FC = () => {
     } = useForm({
         initialState: {
             settings: settings as Array<Setting & { dirty?: boolean }>,
-            themeSettings: themeSettings as Array<CustomThemeSetting & { dirty?: boolean }>
+            themeSettings: (themeSettings?.custom_theme_settings || []) as Array<CustomThemeSetting & { dirty?: boolean }>
         },
         onSave: async () => {
             if (formState.themeSettings.some(setting => setting.dirty)) {
-                const response = await api.customThemeSettings.edit(formState.themeSettings);
-                setThemeSettings(response.custom_theme_settings);
+                const response = await editThemeSettings(formState.themeSettings);
                 updateForm(state => ({...state, themeSettings: response.custom_theme_settings}));
             }
 
             if (formState.settings.some(setting => setting.dirty)) {
-                const newSettings = await saveSettings(formState.settings.filter(setting => setting.dirty));
+                const {settings: newSettings} = await editSettings(formState.settings.filter(setting => setting.dirty));
                 updateForm(state => ({...state, settings: newSettings}));
             }
         }
     });
 
     useEffect(() => {
-        api.customThemeSettings.browse().then((response) => {
-            setThemeSettings(response.custom_theme_settings);
-            setFormState(state => ({...state, themeSettings: response.custom_theme_settings}));
-        });
-    }, [api, updateForm, setFormState]);
+        if (themeSettings) {
+            setFormState(state => ({...state, themeSettings: themeSettings.custom_theme_settings}));
+        }
+    }, [setFormState, themeSettings]);
 
     const updateBrandSetting = (key: string, value: SettingValue) => {
         updateForm(state => ({...state, settings: state.settings.map(setting => (
@@ -178,6 +200,8 @@ const DesignModal: React.FC = () => {
     const sidebarContent =
         <Sidebar
             brandSettings={{description, accentColor, icon, logo, coverImage}}
+            handleSave={handleSave}
+            modal={modal}
             themeSettingSections={themeSettingSections}
             updateBrandSetting={updateBrandSetting}
             updateThemeSetting={updateThemeSetting}
@@ -186,12 +210,13 @@ const DesignModal: React.FC = () => {
 
     return <PreviewModalContent
         afterClose={() => {
-            updateRoute('branding-and-design');
+            updateRoute('design');
         }}
         buttonsDisabled={saveState === 'saving'}
+        cancelLabel='Close'
         defaultTab='homepage'
         dirty={saveState === 'unsaved'}
-        okLabel={saveState === 'saved' ? 'Saved' : (saveState === 'saving' ? 'Saving...' : 'Save and close')}
+        okLabel={saveState === 'saved' ? 'Saved' : (saveState === 'saving' ? 'Saving...' : 'Save')}
         preview={previewContent}
         previewToolbarTabs={previewTabs}
         selectedURL={selectedPreviewTab}
@@ -202,8 +227,6 @@ const DesignModal: React.FC = () => {
         title='Design'
         onOk={async () => {
             await handleSave();
-            modal.remove();
-            updateRoute('branding-and-design');
         }}
         onSelectURL={onSelectURL}
     />;

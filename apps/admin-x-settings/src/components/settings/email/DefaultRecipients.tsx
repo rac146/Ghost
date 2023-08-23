@@ -1,13 +1,15 @@
 import MultiSelect, {MultiSelectOption} from '../../../admin-x-ds/global/form/MultiSelect';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import Select from '../../../admin-x-ds/global/form/Select';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import useSettingGroup from '../../../hooks/useSettingGroup';
 import {GroupBase, MultiValue} from 'react-select';
-import {Label, Offer, Tier} from '../../../types/api';
-import {ServicesContext} from '../../providers/ServiceProvider';
-import {getOptionLabel, getSettingValues} from '../../../utils/helpers';
+import {getOptionLabel} from '../../../utils/helpers';
+import {getSettingValues} from '../../../api/settings';
+import {useBrowseLabels} from '../../../api/labels';
+import {useBrowseOffers} from '../../../api/offers';
+import {useBrowseTiers} from '../../../api/tiers';
 
 type RefipientValueArgs = {
     defaultEmailRecipients: string;
@@ -80,24 +82,9 @@ const DefaultRecipients: React.FC<{ keywords: string[] }> = ({keywords}) => {
         defaultEmailRecipientsFilter
     }));
 
-    const {api} = useContext(ServicesContext);
-    const [tiers, setTiers] = useState<Tier[]>([]);
-    const [labels, setLabels] = useState<Label[]>([]);
-    const [offers, setOffers] = useState<Offer[]>([]);
-
-    useEffect(() => {
-        api.tiers.browse().then((response) => {
-            setTiers(response.tiers);
-        });
-
-        api.labels.browse().then((response) => {
-            setLabels(response.labels);
-        });
-
-        api.offers.browse().then((response) => {
-            setOffers(response.offers);
-        });
-    }, [api]);
+    const {data: {tiers} = {}} = useBrowseTiers();
+    const {data: {labels} = {}} = useBrowseLabels();
+    const {data: {offers} = {}} = useBrowseOffers();
 
     const setDefaultRecipientValue = (value: string) => {
         if (['visibility', 'disabled'].includes(value)) {
@@ -128,19 +115,19 @@ const DefaultRecipients: React.FC<{ keywords: string[] }> = ({keywords}) => {
         },
         {
             label: 'Active Tiers',
-            options: tiers.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name, color: 'black'}))
+            options: tiers?.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name, color: 'black'})) || []
         },
         {
             label: 'Archived Tiers',
-            options: tiers.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name, color: 'black'}))
+            options: tiers?.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name, color: 'black'})) || []
         },
         {
             label: 'Labels',
-            options: labels.map(label => ({value: `label:${label.slug}`, label: label.name, color: 'grey'}))
+            options: labels?.map(label => ({value: `label:${label.slug}`, label: label.name, color: 'grey'})) || []
         },
         {
             label: 'Offers',
-            options: offers.map(offer => ({value: `offer_redemptions:${offer.id}`, label: offer.name, color: 'black'}))
+            options: offers?.map(offer => ({value: `offer_redemptions:${offer.id}`, label: offer.name, color: 'black'})) || []
         }
     ];
 

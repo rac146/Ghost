@@ -1,13 +1,12 @@
 import ImageUpload from '../../../admin-x-ds/global/form/ImageUpload';
-import React, {useContext} from 'react';
+import React from 'react';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
-import TextArea from '../../../admin-x-ds/global/form/TextArea';
 import TextField from '../../../admin-x-ds/global/form/TextField';
 import useSettingGroup from '../../../hooks/useSettingGroup';
-import {FileService, ServicesContext} from '../../providers/ServiceProvider';
 import {ReactComponent as TwitterLogo} from '../../../admin-x-ds/assets/images/twitter-logo.svg';
-import {getSettingValues} from '../../../utils/helpers';
+import {getImageUrl, useUploadImage} from '../../../api/images';
+import {getSettingValues} from '../../../api/settings';
 
 const Twitter: React.FC<{ keywords: string[] }> = ({keywords}) => {
     const {
@@ -21,7 +20,7 @@ const Twitter: React.FC<{ keywords: string[] }> = ({keywords}) => {
         handleEditingChange
     } = useSettingGroup();
 
-    const {fileService} = useContext(ServicesContext) as {fileService: FileService};
+    const {mutateAsync: uploadImage} = useUploadImage();
 
     const [
         twitterTitle, twitterDescription, twitterImage, siteTitle, siteDescription
@@ -31,16 +30,16 @@ const Twitter: React.FC<{ keywords: string[] }> = ({keywords}) => {
         updateSetting('twitter_title', e.target.value);
     };
 
-    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         updateSetting('twitter_description', e.target.value);
     };
 
     const handleImageUpload = async (file: File) => {
         try {
-            const imageUrl = await fileService.uploadImage(file);
+            const imageUrl = getImageUrl(await uploadImage({file}));
             updateSetting('twitter_image', imageUrl);
-        } catch (err: any) {
-            // handle error
+        } catch (err) {
+            // TODO: handle error
         }
     };
 
@@ -84,10 +83,9 @@ const Twitter: React.FC<{ keywords: string[] }> = ({keywords}) => {
                             value={twitterTitle}
                             onChange={handleTitleChange}
                         />
-                        <TextArea
+                        <TextField
                             clearBg={true}
                             placeholder={siteDescription}
-                            rows={2}
                             title="Twitter description"
                             value={twitterDescription}
                             onChange={handleDescriptionChange}

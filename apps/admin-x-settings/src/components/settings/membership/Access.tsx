@@ -1,13 +1,13 @@
 import MultiSelect, {MultiSelectOption} from '../../../admin-x-ds/global/form/MultiSelect';
-import React, {useContext, useEffect, useState} from 'react';
+import React from 'react';
 import Select from '../../../admin-x-ds/global/form/Select';
 import SettingGroup from '../../../admin-x-ds/settings/SettingGroup';
 import SettingGroupContent from '../../../admin-x-ds/settings/SettingGroupContent';
 import useSettingGroup from '../../../hooks/useSettingGroup';
 import {GroupBase, MultiValue} from 'react-select';
-import {ServicesContext} from '../../providers/ServiceProvider';
-import {Tier} from '../../../types/api';
-import {getOptionLabel, getSettingValues} from '../../../utils/helpers';
+import {getOptionLabel} from '../../../utils/helpers';
+import {getSettingValues} from '../../../api/settings';
+import {useBrowseTiers} from '../../../api/tiers';
 
 const MEMBERS_SIGNUP_ACCESS_OPTIONS = [
     {value: 'all', label: 'Anyone can sign up'},
@@ -47,23 +47,16 @@ const Access: React.FC<{ keywords: string[] }> = ({keywords}) => {
     const defaultContentVisibilityLabel = getOptionLabel(DEFAULT_CONTENT_VISIBILITY_OPTIONS, defaultContentVisibility);
     const commentsEnabledLabel = getOptionLabel(COMMENTS_ENABLED_OPTIONS, commentsEnabled);
 
-    const {api} = useContext(ServicesContext);
-    const [tiers, setTiers] = useState<Tier[]>([]);
-
-    useEffect(() => {
-        api.tiers.browse().then((response) => {
-            setTiers(response.tiers);
-        });
-    }, [api]);
+    const {data: {tiers} = {}} = useBrowseTiers();
 
     const tierOptionGroups: GroupBase<MultiSelectOption>[] = [
         {
             label: 'Active Tiers',
-            options: tiers.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name}))
+            options: tiers?.filter(({active}) => active).map(tier => ({value: tier.id, label: tier.name})) || []
         },
         {
             label: 'Archived Tiers',
-            options: tiers.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name}))
+            options: tiers?.filter(({active}) => !active).map(tier => ({value: tier.id, label: tier.name})) || []
         }
     ];
 

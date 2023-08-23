@@ -1,11 +1,11 @@
 import Heading from '../../../../admin-x-ds/global/Heading';
 import Hint from '../../../../admin-x-ds/global/Hint';
 import ImageUpload from '../../../../admin-x-ds/global/form/ImageUpload';
-import React, {useContext} from 'react';
+import React from 'react';
 import SettingGroupContent from '../../../../admin-x-ds/settings/SettingGroupContent';
 import TextField from '../../../../admin-x-ds/global/form/TextField';
-import {ServicesContext} from '../../../providers/ServiceProvider';
-import {SettingValue} from '../../../../types/api';
+import {SettingValue} from '../../../../api/settings';
+import {getImageUrl, useUploadImage} from '../../../../api/images';
 
 export interface BrandSettingValues {
     description: string
@@ -16,7 +16,7 @@ export interface BrandSettingValues {
 }
 
 const BrandSettings: React.FC<{ values: BrandSettingValues, updateSetting: (key: string, value: SettingValue) => void }> = ({values,updateSetting}) => {
-    const {fileService} = useContext(ServicesContext);
+    const {mutateAsync: uploadImage} = useUploadImage();
 
     return (
         <div className='mt-7'>
@@ -59,7 +59,7 @@ const BrandSettings: React.FC<{ values: BrandSettingValues, updateSetting: (key:
                             width={values.icon ? '66px' : '150px'}
                             onDelete={() => updateSetting('icon', null)}
                             onUpload={async (file) => {
-                                updateSetting('icon', await fileService!.uploadImage(file));
+                                updateSetting('icon', getImageUrl(await uploadImage({file})));
                             }}
                         >
                         Upload icon
@@ -71,20 +71,20 @@ const BrandSettings: React.FC<{ values: BrandSettingValues, updateSetting: (key:
                     <ImageUpload
                         deleteButtonClassName='!top-1 !right-1'
                         height='80px'
-                        id='logo'
+                        id='site-logo'
                         imageBWCheckedBg={true}
                         imageFit='contain'
                         imageURL={values.logo || ''}
                         onDelete={() => updateSetting('logo', null)}
                         onUpload={async (file) => {
-                            updateSetting('logo', await fileService!.uploadImage(file));
+                            updateSetting('logo', getImageUrl(await uploadImage({file})));
                         }}
                     >
                     Upload logo
                     </ImageUpload>
                 </div>
                 <div>
-                    <Heading className='mb-2' level={6}>Publication cover</Heading>
+                    <Heading className='mb-2' grey={(values.coverImage ? true : false)} level={6}>Publication cover</Heading>
                     <ImageUpload
                         deleteButtonClassName='!top-1 !right-1'
                         height='180px'
@@ -92,7 +92,7 @@ const BrandSettings: React.FC<{ values: BrandSettingValues, updateSetting: (key:
                         imageURL={values.coverImage || ''}
                         onDelete={() => updateSetting('cover_image', null)}
                         onUpload={async (file) => {
-                            updateSetting('cover_image', await fileService!.uploadImage(file));
+                            updateSetting('cover_image', getImageUrl(await uploadImage({file})));
                         }}
                     >
                     Upload cover
